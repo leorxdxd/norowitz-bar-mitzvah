@@ -13,7 +13,7 @@
   /* Envelope width drives the whole reveal's geometry. It is capped against
      viewport HEIGHT too, so the card never rises past the top of the screen
      mid-animation on short windows. */
-  --env-w: clamp(240px, min(80vw, 40svh), 360px);
+  --env-w: clamp(260px, min(84vw, 54svh), 460px);
 }
 
 *{box-sizing:border-box;}
@@ -403,24 +403,24 @@ section{
 .card-back{ transform:rotateY(180deg); justify-content:flex-start; padding-top:14%; }
 
 .seal{
-  width:44px; height:44px; border-radius:50%;
+  width:50px; height:50px; border-radius:50%;
   border:1px solid var(--gold);
   display:flex; align-items:center; justify-content:center;
   font-family:'Marcellus', serif;
-  font-size:1.05rem; color:var(--gold-deep);
+  font-size:1.2rem; color:var(--gold-deep);
   margin-bottom:1.1rem;
 }
-.card-face .who{ font-size:clamp(1.4rem,5vw,1.85rem); color:var(--ink); }
+.card-face .who{ font-size:clamp(1.5rem,5.5vw,2.15rem); color:var(--ink); }
 .card-face .invite-eyebrow{
-  font-family:'Jost', sans-serif; font-size:.62rem; letter-spacing:.25em;
+  font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.25em;
   text-transform:uppercase; color:var(--ink-soft); margin-bottom:.5rem;
 }
-.card-face .invite-line{ font-style:italic; color:var(--ink-soft); font-size:.95rem; margin-top:.3rem; }
-.card-face .invite-date{ margin-top:.9rem; font-size:1.05rem; letter-spacing:.02em; }
-.card-face .invite-venue{ margin-top:.25rem; font-size:.92rem; color:var(--ink-soft); }
+.card-face .invite-line{ font-style:italic; color:var(--ink-soft); font-size:1.05rem; margin-top:.3rem; }
+.card-face .invite-date{ margin-top:.9rem; font-size:1.18rem; letter-spacing:.02em; }
+.card-face .invite-venue{ margin-top:.25rem; font-size:1.02rem; color:var(--ink-soft); }
 
 .card-back h3{
-  font-family:'Marcellus', serif; font-size:1.3rem; color:var(--gold-deep);
+  font-family:'Marcellus', serif; font-size:1.5rem; color:var(--gold-deep);
   margin-bottom:.9rem;
 }
 .shabbos-item{
@@ -434,7 +434,7 @@ section{
 .card.flipped .shabbos-item:nth-of-type(3){ transition-delay:.64s; }
 .card.flipped .shabbos-item:nth-of-type(4){ transition-delay:.72s; }
 .shabbos-item .when{
-  font-family:'Jost', sans-serif; font-size:.62rem; letter-spacing:.18em;
+  font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-soft);
 }
 .shabbos-item .when::before{
@@ -442,7 +442,7 @@ section{
   width:5px; height:5px; margin-right:.55em;
   background:var(--gold); transform:rotate(45deg) translateY(-1px);
 }
-.shabbos-item .what{ font-size:1.02rem; margin-top:.15rem; }
+.shabbos-item .what{ font-size:1.12rem; margin-top:.15rem; }
 
 .flip-hint{
   display:flex; align-items:center; gap:.5rem;

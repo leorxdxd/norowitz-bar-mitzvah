@@ -1,0 +1,567 @@
+:root{
+  color-scheme: light;
+  --ivory:#F6EFE0;
+  --paper:#FBF7EC;
+  --paper-edge:#EAD9AC;
+  --ink:#241C12;
+  --ink-soft:#5B4E39;
+  --gold:#AD8A44;
+  --gold-deep:#7C5A24;
+  --gold-light:#E4CE97;
+  --line: rgba(124,90,36,.45);
+  --shadow: rgba(53,38,9,.28);
+  /* Envelope width drives the whole reveal's geometry. It is capped against
+     viewport HEIGHT too, so the card never rises past the top of the screen
+     mid-animation on short windows. */
+  --env-w: clamp(240px, min(80vw, 40svh), 360px);
+}
+
+*{box-sizing:border-box;}
+html{ background:var(--ivory); }
+body{
+  margin:0;
+  background:var(--ivory);
+  color:var(--ink);
+  font-family:'Cormorant Garamond', Georgia, serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
+p{margin:0;}
+::selection{background:var(--gold-light); color:var(--ink);}
+
+a, button{font-family:inherit;}
+
+/* ---------- watermark ---------- */
+.watermark{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+  z-index:0;
+  font-family:'Marcellus', serif;
+  font-size:clamp(9rem, 42vw, 26rem);
+  color:var(--gold-deep);
+  opacity:.055;
+  letter-spacing:.02em;
+  user-select:none;
+}
+
+/* faint paper grain so the ivory ground reads as stock, not a flat fill */
+.grain{
+  position:fixed; inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.05;
+  mix-blend-mode:multiply;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
+  background-size:180px 180px;
+}
+
+/* ---------- persistent rsvp pill ---------- */
+.rsvp-pill{
+  position:fixed; top:20px; right:20px; z-index:50;
+  background:transparent;
+  border:1px solid var(--gold);
+  color:var(--gold-deep);
+  font-family:'Jost', sans-serif;
+  font-size:.72rem;
+  letter-spacing:.22em;
+  padding:.7em 1.3em;
+  border-radius:999px;
+  cursor:pointer;
+  transition:background .3s ease, color .3s ease, box-shadow .3s ease, transform .3s ease;
+}
+.rsvp-pill:hover{ background:var(--gold); color:var(--paper); box-shadow:0 10px 20px -12px var(--shadow); transform:translateY(-1px); }
+.rsvp-pill:focus-visible{ outline:2px solid var(--gold-deep); outline-offset:3px; }
+
+main{position:relative; z-index:1;}
+
+section{
+  position:relative;
+  padding:0 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ---------- hero ---------- */
+.hero{
+  min-height:100svh;
+  justify-content:center;
+  text-align:center;
+  z-index:1;
+}
+.hero-inner{
+  max-width:560px;
+  transition:opacity .3s ease-out, transform .3s ease-out, filter .3s ease-out;
+  will-change:opacity, transform, filter;
+}
+@keyframes rise-in{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+.hero-inner > *{ animation:rise-in .9s cubic-bezier(.22,.68,0,1.03) both; }
+.hero-inner > *:nth-child(1){ animation-delay:.05s; }
+.hero-inner > *:nth-child(2){ animation-delay:.16s; }
+.hero-inner > *:nth-child(3){ animation-delay:.3s; }
+.hero-inner > *:nth-child(4){ animation-delay:.42s; }
+.hero-inner > *:nth-child(5){ animation-delay:.52s; }
+.hero-inner > *:nth-child(6){ animation-delay:.64s; }
+.eyebrow{
+  font-family:'Jost', sans-serif;
+  font-size:.78rem;
+  letter-spacing:.32em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-bottom:1.4rem;
+}
+.hero h1{
+  font-size:clamp(2.6rem, 8vw, 4.6rem);
+  letter-spacing:.01em;
+  color:var(--ink);
+}
+.hero .date-line{
+  margin-top:1rem;
+  font-style:italic;
+  font-size:clamp(1.05rem,3vw,1.3rem);
+  color:var(--ink-soft);
+}
+
+/* small line-dot-line ornament used wherever the invitation would
+   print a flourish between sections */
+.flourish{
+  display:flex; align-items:center; justify-content:center;
+  gap:.55rem; margin:1.8rem auto;
+}
+.flourish .fl-line{ width:38px; height:1px; flex:none; }
+.flourish .fl-line.l{ background:linear-gradient(90deg, transparent, var(--gold)); }
+.flourish .fl-line.r{ background:linear-gradient(90deg, var(--gold), transparent); }
+.flourish .fl-dot{ width:5px; height:5px; background:var(--gold); transform:rotate(45deg); flex:none; }
+.flourish.small{ margin:1rem auto; }
+.flourish.small .fl-line{ width:22px; }
+
+.countdown{
+  display:flex; align-items:baseline; justify-content:center;
+  gap:.55rem; flex-wrap:wrap;
+  margin-top:.4rem;
+  padding-block:1.1rem;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.cd-unit{ display:flex; flex-direction:column; align-items:center; min-width:3.6rem; }
+.cd-num{
+  font-family:'Jost', sans-serif;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(1.6rem,5vw,2.3rem);
+  font-weight:500;
+  color:var(--gold-deep);
+  letter-spacing:.03em;
+}
+.cd-label{
+  font-family:'Jost', sans-serif;
+  font-size:.62rem;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-top:.2rem;
+}
+.cd-sep{ color:var(--gold); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
+
+.scroll-cue{
+  margin-top:2.2rem;
+  display:flex; flex-direction:column; align-items:center; gap:.75rem;
+  font-family:'Jost', sans-serif;
+  font-size:.76rem;
+  font-weight:500;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.scroll-cue-icon{
+  width:48px; height:48px;
+  border-radius:50%;
+  border:1.5px solid var(--gold);
+  background:var(--paper);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--gold-deep);
+  box-shadow:0 8px 18px -10px var(--shadow);
+  animation:cue-bounce 1.8s ease-in-out infinite;
+}
+.scroll-cue-icon svg{ width:22px; height:22px; }
+@keyframes cue-bounce{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(9px); }
+}
+
+/* ---------- invitation stage ---------- */
+.invite-stage{ min-height:175vh; padding-top:0; z-index:2; }
+.stage-inner{
+  position:sticky; top:0;
+  min-height:100svh;
+  width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1.6rem;
+}
+/* soft gold light behind the envelope, like a spotlight, once it opens */
+.stage-inner::before{
+  content:'';
+  position:absolute; top:50%; left:50%;
+  width:min(70vmin, 640px); aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle, var(--gold-light) 0%, transparent 68%);
+  opacity:0;
+  filter:blur(50px);
+  transition:opacity 1.4s ease;
+  pointer-events:none;
+}
+.stage-inner:has(.envelope.is-open)::before{ opacity:.35; }
+
+.envelope-wrap{
+  perspective:1800px;
+  opacity:0;
+  transform:translateY(46px);
+  transition:opacity 1s ease, transform 1s cubic-bezier(.22,.68,0,1.03);
+  will-change:opacity, transform;
+}
+.envelope-wrap.is-visible{ opacity:1; transform:translateY(0); }
+
+.envelope{
+  position:relative;
+  width:var(--env-w);
+  aspect-ratio: 5 / 7;
+  transform-style:preserve-3d;
+  transition:transform 1s cubic-bezier(.22,.61,.24,1) 1.2s;
+}
+/* The stage centres the ENVELOPE box, but the card ends up floating well
+   above it. Once the card is out and the shell has dissolved, glide the
+   whole assembly down by that difference so the CARD lands dead centre. */
+.envelope.is-open{ transform:translateY(calc(var(--env-w) * 0.5)); }
+
+.env-shadow{
+  position:absolute; left:50%; bottom:-6%;
+  width:74%; height:22px;
+  background:radial-gradient(ellipse at center, var(--shadow) 0%, transparent 72%);
+  transform:translateX(-50%) scaleX(1);
+  filter:blur(2px);
+  opacity:.45;
+  transition:opacity .7s ease .95s, transform 1s ease .3s;
+  z-index:0;
+}
+/* the envelope's own contact shadow hands off to .card-position::after
+   (the card's shadow) once the card has fully emerged */
+.envelope.is-open .env-shadow{ opacity:0; transform:translateX(-50%) scaleX(1.25); }
+
+.env-back{
+  position:absolute; inset:0;
+  background:linear-gradient(155deg, var(--paper) 0%, var(--ivory) 100%);
+  border:1px solid var(--paper-edge);
+  border-radius:4px;
+  box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.4);
+  z-index:1;
+  transition:opacity .7s ease .95s;
+}
+.env-back::before{
+  content:'';
+  position:absolute; inset:10px;
+  border:1px solid var(--line);
+  border-radius:2px;
+  opacity:.6;
+}
+/* the empty envelope shell dissolves once its job is done, instead of
+   lingering behind the card as a large blank box */
+.envelope.is-open .env-back{ opacity:0; }
+
+/* the flap folds down from the top edge; opening rotates it up & back */
+.env-flap{
+  position:absolute; top:0; left:0; width:100%; height:42%;
+  background:linear-gradient(200deg, var(--ivory) 0%, var(--paper-edge) 130%);
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  transform-origin:top center;
+  transform:rotateX(0deg);
+  transition:transform .85s cubic-bezier(.5,.02,.16,1);
+  backface-visibility:hidden;
+  z-index:3;
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset;
+}
+.envelope.is-open .env-flap{ transform:rotateX(-162deg); }
+
+.seal-wrap{
+  position:absolute; left:50%; top:100%; width:46px; height:46px;
+  transform:translate(-50%,-52%);
+  transition:opacity .5s ease .1s, transform .5s ease .1s;
+}
+.envelope.is-open .seal-wrap{ opacity:0; transform:translate(-50%,-52%) scale(.7) rotate(-14deg); }
+.seal-wrap::after{
+  content:'';
+  position:absolute; inset:-5px;
+  border:1px solid rgba(173,138,68,.35);
+  border-radius:50%;
+}
+.wax-seal{
+  width:100%; height:100%; border-radius:50%;
+  background:radial-gradient(circle at 32% 30%, var(--gold-light), var(--gold) 55%, var(--gold-deep) 100%);
+  border:1px solid var(--gold-deep);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Marcellus', serif;
+  font-size:1.05rem; color:var(--paper);
+  box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.18);
+}
+
+.card-position{
+  position:absolute;
+  left:50%; bottom:5%;
+  width:86%;
+  transform:translate(-50%, 5%) scale(.92) rotate(-4deg);
+  opacity:0;
+  transition:transform 1s cubic-bezier(.22,.68,0,1.03) .35s, opacity .6s ease .35s;
+  z-index:2;
+  transform-origin:center bottom;
+  will-change:transform, opacity;
+}
+.envelope.is-open .card-position{
+  transform:translate(-50%, -45%) scale(1) rotate(0deg);
+  opacity:1;
+}
+/* takes over grounding the card once the envelope shell has dissolved */
+.card-position::after{
+  content:'';
+  position:absolute; left:50%; bottom:-8%;
+  width:78%; height:18px;
+  transform:translateX(-50%);
+  background:radial-gradient(ellipse at center, var(--shadow) 0%, transparent 72%);
+  filter:blur(6px);
+  opacity:0;
+  transition:opacity .8s ease 1.5s;
+  z-index:-1;
+  pointer-events:none;
+}
+.envelope.is-open .card-position::after{ opacity:.5; }
+
+.card-float{ animation:none; }
+.envelope.is-open .card-float{
+  animation:float 5.5s ease-in-out 2.3s infinite;
+}
+@keyframes float{
+  0%,100%{ transform:translateY(0) rotate(.35deg); }
+  50%{ transform:translateY(-10px) rotate(-.35deg); }
+}
+
+.card-tilt{
+  transform-style:preserve-3d;
+  transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg));
+  transition:transform .35s ease-out;
+}
+
+.card{
+  position:relative;
+  width:100%;
+  aspect-ratio:5/6.9;
+  cursor:pointer;
+  transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.4,.15,.2,1);
+  will-change:transform;
+}
+.card.flipped{ transform:rotateY(180deg); }
+
+/* a single soft sheen sweeps across the card the moment it's revealed */
+.card::before{
+  content:'';
+  position:absolute; inset:0;
+  z-index:4;
+  background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%);
+  background-size:250% 250%;
+  background-position:130% 0;
+  pointer-events:none;
+  opacity:0;
+}
+.envelope.is-open .card::before{
+  animation:sheen 1.5s ease-out 2.4s 1;
+}
+@keyframes sheen{
+  0%{ background-position:130% 0; opacity:0; }
+  15%{ opacity:.8; }
+  55%{ opacity:.3; }
+  100%{ background-position:-30% 0; opacity:0; }
+}
+
+.card-face{
+  position:absolute; inset:0;
+  background:var(--paper);
+  border:1px solid var(--paper-edge);
+  border-radius:3px;
+  backface-visibility:hidden;
+  box-shadow:0 30px 60px -20px var(--shadow);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center;
+  padding:9% 8%;
+}
+/* inset hairline, like an engraved invitation's printed mat */
+.card-face::after{
+  content:'';
+  position:absolute; inset:12px;
+  border:1px solid var(--line);
+  pointer-events:none;
+}
+.card-back{ transform:rotateY(180deg); justify-content:flex-start; padding-top:14%; }
+
+.seal{
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Marcellus', serif;
+  font-size:1.05rem; color:var(--gold-deep);
+  margin-bottom:1.1rem;
+}
+.card-face .who{ font-size:clamp(1.4rem,5vw,1.85rem); color:var(--ink); }
+.card-face .invite-eyebrow{
+  font-family:'Jost', sans-serif; font-size:.62rem; letter-spacing:.25em;
+  text-transform:uppercase; color:var(--ink-soft); margin-bottom:.5rem;
+}
+.card-face .invite-line{ font-style:italic; color:var(--ink-soft); font-size:.95rem; margin-top:.3rem; }
+.card-face .invite-date{ margin-top:.9rem; font-size:1.05rem; letter-spacing:.02em; }
+.card-face .invite-venue{ margin-top:.25rem; font-size:.92rem; color:var(--ink-soft); }
+
+.card-back h3{
+  font-family:'Marcellus', serif; font-size:1.3rem; color:var(--gold-deep);
+  margin-bottom:.9rem;
+}
+.shabbos-item{
+  margin-bottom:1rem;
+  opacity:0; transform:translateY(10px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.card.flipped .shabbos-item{ opacity:1; transform:translateY(0); }
+.card.flipped .shabbos-item:nth-of-type(1){ transition-delay:.48s; }
+.card.flipped .shabbos-item:nth-of-type(2){ transition-delay:.56s; }
+.card.flipped .shabbos-item:nth-of-type(3){ transition-delay:.64s; }
+.card.flipped .shabbos-item:nth-of-type(4){ transition-delay:.72s; }
+.shabbos-item .when{
+  font-family:'Jost', sans-serif; font-size:.62rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink-soft);
+}
+.shabbos-item .when::before{
+  content:''; display:inline-block;
+  width:5px; height:5px; margin-right:.55em;
+  background:var(--gold); transform:rotate(45deg) translateY(-1px);
+}
+.shabbos-item .what{ font-size:1.02rem; margin-top:.15rem; }
+
+.flip-hint{
+  display:flex; align-items:center; gap:.5rem;
+  font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--ink-soft);
+  opacity:0; transform:translateY(6px);
+  transition:opacity .6s ease, transform .6s ease;
+}
+.flip-hint.ready{ opacity:1; transform:translateY(0); }
+.flip-hint.hidden{ opacity:0; }
+.flip-hint svg{ width:16px; height:16px; animation:hint-nudge 2.4s ease-in-out infinite; }
+@keyframes hint-nudge{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(28deg); } }
+
+/* ---------- rsvp ---------- */
+.rsvp{ min-height:100svh; justify-content:center; padding-block:6rem; z-index:3; }
+.rsvp-inner{
+  width:100%; max-width:480px; text-align:center;
+  opacity:0; transform:translateY(28px);
+  transition:opacity 1s ease, transform 1s cubic-bezier(.22,.68,0,1.03);
+}
+.rsvp-inner.is-visible{ opacity:1; transform:translateY(0); }
+.rsvp-monogram{
+  font-family:'Marcellus', serif; font-size:2.2rem; color:var(--gold);
+  margin-bottom:1rem;
+}
+.rsvp h2{
+  font-size:clamp(1.5rem,4.4vw,2.1rem);
+  margin-bottom:2.2rem;
+}
+
+form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
+.field{ position:relative; }
+.field label{
+  display:block; font-family:'Jost', sans-serif; font-size:.68rem;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
+  margin-bottom:.5rem;
+}
+.field input, .field textarea{
+  width:100%; border:none; border-bottom:1px solid var(--line);
+  background:transparent; font-family:'Cormorant Garamond', serif;
+  font-size:1.15rem; color:var(--ink); padding:.4rem 0;
+}
+.field input:focus, .field textarea:focus, .field input:focus-visible{
+  outline:none;
+}
+.field textarea{ resize:vertical; min-height:3rem; }
+/* the gold underline grows out from center on focus, instead of an instant swap */
+.field::after{
+  content:'';
+  position:absolute; left:50%; right:50%; bottom:0;
+  height:1px; background:var(--gold-deep);
+  transition:left .35s cubic-bezier(.4,0,.2,1), right .35s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
+.field:focus-within::after{ left:0; right:0; }
+
+.attend-toggle{ display:flex; gap:.7rem; }
+.attend-toggle input{ position:absolute; opacity:0; width:0; height:0; }
+.attend-toggle label{
+  flex:1; text-align:center;
+  font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.08em;
+  padding:.75em .5em; border:1px solid var(--gold);
+  border-radius:999px; color:var(--gold-deep); cursor:pointer;
+  transition:background .25s ease, color .25s ease;
+}
+.attend-toggle input:checked + label{ background:var(--gold); color:var(--paper); }
+.attend-toggle input:focus-visible + label{ outline:2px solid var(--gold-deep); outline-offset:2px; }
+
+.conditional-fields{
+  display:flex; flex-direction:column; gap:1.3rem;
+  max-height:500px; overflow:hidden; transition:max-height .4s ease, opacity .4s ease;
+}
+.conditional-fields.collapsed{ max-height:0; opacity:0; }
+
+.submit-btn{
+  margin-top:.6rem;
+  background:var(--gold-deep); color:var(--paper);
+  border:none; border-radius:999px;
+  padding:1em; font-family:'Jost', sans-serif; font-size:.78rem;
+  letter-spacing:.24em; text-transform:uppercase; cursor:pointer;
+  transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+.submit-btn:hover{
+  background:var(--gold);
+  transform:translateY(-2px);
+  box-shadow:0 14px 24px -12px var(--shadow);
+}
+.submit-btn:focus-visible{ outline:2px solid var(--gold-deep); outline-offset:3px; }
+.submit-btn:disabled{ opacity:.65; cursor:default; transform:none; box-shadow:none; }
+
+.form-error{
+  font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.02em;
+  color:#9C4B3A; text-align:center; margin-top:-.4rem;
+}
+
+#rsvpForm{ transition:opacity .5s ease, transform .5s ease; }
+#rsvpForm.gone{ opacity:0; transform:translateY(-14px); pointer-events:none; position:absolute; }
+
+.rsvp-confirm{
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  opacity:0; transform:translateY(14px);
+  transition:opacity .6s ease .1s, transform .6s ease .1s;
+}
+.rsvp-confirm.shown{ opacity:1; transform:translateY(0); }
+.confirm-title{ font-size:1.6rem; margin-top:.4rem; }
+.rsvp-confirm p.sub{ color:var(--ink-soft); font-style:italic; }
+
+footer{
+  position:relative; z-index:3;
+  text-align:center; padding:2.5rem 20px 3rem;
+  font-family:'Jost', sans-serif; font-size:.65rem; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--ink-soft); opacity:.7;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  html{ scroll-behavior:auto; }
+}
+
+@media (max-width:420px){
+  .rsvp-pill{ top:14px; right:14px; padding:.6em 1em; font-size:.66rem; }
+}

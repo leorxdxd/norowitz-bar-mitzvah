@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Yehoshua Norowitz &middot; Bar Mitzvah</title>
+  <meta name="description" content="Join us to celebrate the Bar Mitzvah of Yehoshua Norowitz, November 2026.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Marcellus&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="watermark" aria-hidden="true">YN</div>
+<div class="grain" aria-hidden="true"></div>
+
+<button class="rsvp-pill" id="rsvpPill">RSVP</button>
+
+<main>
+
+  <section class="hero" id="hero">
+    <div class="hero-inner" id="heroInner">
+      <p class="eyebrow">You are invited to the Bar&nbsp;Mitzvah of</p>
+      <h1>Yehoshua Norowitz</h1>
+      <p class="date-line">Motzei Shabbos &middot; November 7, 2026</p>
+      <div class="flourish"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
+      <div class="countdown" aria-live="off">
+        <div class="cd-unit"><span class="cd-num" id="cdDays">00</span><span class="cd-label">Days</span></div>
+        <span class="cd-sep">&middot;</span>
+        <div class="cd-unit"><span class="cd-num" id="cdHours">00</span><span class="cd-label">Hours</span></div>
+        <span class="cd-sep">&middot;</span>
+        <div class="cd-unit"><span class="cd-num" id="cdMins">00</span><span class="cd-label">Minutes</span></div>
+        <span class="cd-sep">&middot;</span>
+        <div class="cd-unit"><span class="cd-num" id="cdSecs">00</span><span class="cd-label">Seconds</span></div>
+      </div>
+      <div class="scroll-cue">
+        <span class="scroll-cue-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 13l6 6 6-6"/></svg>
+        </span>
+        Scroll to open your invitation
+      </div>
+    </div>
+  </section>
+
+  <section class="invite-stage" id="inviteStage">
+    <div class="stage-inner">
+      <div class="envelope-wrap" id="envelopeWrap">
+        <div class="envelope" id="envelope">
+          <div class="env-shadow"></div>
+          <div class="env-back"></div>
+          <div class="card-position">
+            <div class="card-float">
+              <div class="card-tilt" id="cardTilt">
+              <div class="card" id="card" role="button" tabindex="0" aria-label="Invitation card, tap to flip">
+                <div class="card-face card-front">
+                  <div class="seal">YN</div>
+                  <p class="invite-eyebrow">Please join us</p>
+                  <h2 class="who">Yehoshua<br>Norowitz</h2>
+                  <p class="invite-line">as he is called to the Torah as a Bar Mitzvah</p>
+                  <div class="flourish small"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
+                  <p class="invite-date">Motzei Shabbos, 26th of Cheshvan &middot; November 7, 2026</p>
+                  <p class="invite-venue">Details on reverse</p>
+                </div>
+                <div class="card-face card-back">
+                  <h3>Shabbos Norowitz</h3>
+                  <div class="shabbos-item">
+                    <p class="when">Friday Evening</p>
+                    <p class="what">Candle lighting &amp; Seudas Shabbos, 6:15 PM</p>
+                  </div>
+                  <div class="shabbos-item">
+                    <p class="when">Shabbos Day</p>
+                    <p class="what">Kiddush following davening, 12:00 PM</p>
+                  </div>
+                  <div class="shabbos-item">
+                    <p class="when">Motzei Shabbos</p>
+                    <p class="what">Bar Mitzvah Celebration, 8:00 PM</p>
+                  </div>
+                  <div class="shabbos-item">
+                    <p class="when">Venue</p>
+                    <p class="what">Venue name &amp; address here</p>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+          <div class="env-flap">
+            <div class="seal-wrap"><div class="wax-seal">YN</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="flip-hint" id="flipHint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5"/><path d="M6 21v-4h4"/></svg>
+        Tap the invitation to turn it over
+      </div>
+    </div>
+  </section>
+
+  <section class="rsvp" id="rsvp">
+    <div class="rsvp-inner" id="rsvpInner">
+      <div class="rsvp-monogram">YN</div>
+      <div class="flourish small"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
+      <h2>We look forward to celebrating with you.</h2>
+
+      <form id="rsvpForm">
+        <div class="field">
+          <label for="fam">Guest / Family Name</label>
+          <input id="fam" name="fam" type="text" required autocomplete="name">
+        </div>
+
+        <div class="field">
+          <label>Will you be attending?</label>
+          <div class="attend-toggle">
+            <input type="radio" name="attending" id="attendYes" value="yes" checked>
+            <label for="attendYes">Joyfully Accept</label>
+            <input type="radio" name="attending" id="attendNo" value="no">
+            <label for="attendNo">Regretfully Decline</label>
+          </div>
+        </div>
+
+        <div class="conditional-fields" id="conditionalFields">
+          <div class="field">
+            <label for="count">Number of Guests</label>
+            <input id="count" name="count" type="number" min="1" max="10" value="1">
+          </div>
+          <div class="field">
+            <label for="names">Guest Names</label>
+            <textarea id="names" name="names" placeholder="First &amp; last name of each guest"></textarea>
+          </div>
+          <div class="field">
+            <label for="email">Email (optional, for confirmation)</label>
+            <input id="email" name="email" type="email" autocomplete="email">
+          </div>
+        </div>
+
+        <p class="form-error" id="formError" hidden></p>
+        <button type="submit" class="submit-btn" id="submitBtn"><span>Submit RSVP</span></button>
+      </form>
+
+      <div class="rsvp-confirm" id="rsvpConfirm">
+        <div class="rsvp-monogram">YN</div>
+        <p class="confirm-title">Thank you.</p>
+        <p class="sub">We look forward to celebrating together.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 2026</footer>
+
+<script src="js/config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

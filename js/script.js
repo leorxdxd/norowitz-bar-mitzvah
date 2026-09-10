@@ -103,9 +103,13 @@
   }, {threshold:[0,0.2,1]});
   rsvpIo.observe(rsvpInner);
 
-  // ---------- rsvp pill scroll ----------
+  // ---------- rsvp pill: jump straight there, skip the invitation animation ----------
+  // A guest with the printed invitation shouldn't have to sit through the
+  // envelope opening just to RSVP, so this is an instant jump (not smooth) —
+  // smooth scrolling would drag the viewport through the envelope section
+  // and trigger its reveal/open animation along the way.
   document.getElementById('rsvpPill').addEventListener('click', function(){
-    document.getElementById('rsvp').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'start'});
+    document.getElementById('rsvp').scrollIntoView({behavior: 'auto', block:'start'});
   });
 
   // ---------- attending toggle shows/hides guest fields ----------

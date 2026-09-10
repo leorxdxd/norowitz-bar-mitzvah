@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Marcellus&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ivory:#F6EFE0;
+      --paper:#FBF7EC;
+      --paper-edge:#EAD9AC;
+      --ink:#241C12;
+      --ink-soft:#5B4E39;
+      --gold:#AD8A44;
+      --gold-deep:#7C5A24;
+      --gold-light:#E4CE97;
+      --line: rgba(124,90,36,.42);
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; }
+    a{ color:var(--gold-deep); }
+    a:hover{ color:var(--gold); }
+    .card{
+      width:480px; height:672px;
+      position:relative;
+      background:linear-gradient(155deg, var(--paper) 0%, var(--ivory) 100%);
+      font-family:'Cormorant Garamond', Georgia, serif;
+      color:var(--ink);
+      overflow:hidden;
+    }
+    .frame-outer{ position:absolute; inset:20px; border:1px solid var(--gold); }
+    .frame-inner{ position:absolute; inset:30px; border:1px solid var(--line); }
+    .corner{ position:absolute; width:34px; height:34px; }
+    .corner svg{ display:block; }
+    .corner.tl{ top:24px; left:24px; }
+    .corner.tr{ top:24px; right:24px; transform:scaleX(-1); }
+    .corner.bl{ bottom:24px; left:24px; transform:scaleY(-1); }
+    .corner.br{ bottom:24px; right:24px; transform:scale(-1,-1); }
+    .content{
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center;
+      padding:0 58px;
+    }
+    .heading{
+      font-family:'Marcellus', serif; font-size:32px; color:var(--gold-deep);
+      margin:0 0 8px;
+    }
+    .flourish{ display:flex; align-items:center; gap:10px; margin:6px 0 30px; }
+    .fl-line{ width:44px; height:1px; }
+    .fl-line.l{ background:linear-gradient(90deg, transparent, var(--gold)); }
+    .fl-line.r{ background:linear-gradient(90deg, var(--gold), transparent); }
+    .fl-dot{ width:6px; height:6px; background:var(--gold); transform:rotate(45deg); }
+    .schedule{ width:100%; text-align:left; }
+    .item{ margin-bottom:24px; }
+    .item:last-child{ margin-bottom:0; }
+    .when{
+      display:flex; align-items:center; gap:9px;
+      font-family:'Jost', sans-serif; font-weight:600;
+      font-size:12px; letter-spacing:3px; text-transform:uppercase;
+      color:var(--ink-soft);
+    }
+    .when .dot{ width:6px; height:6px; background:var(--gold); transform:rotate(45deg); flex:none; }
+    .what{ font-size:19px; margin:5px 0 0 15px; }
+  </style>
+</helmet>
+
+<div class="card">
+  <div class="frame-outer"></div>
+  <div class="frame-inner"></div>
+
+  <div class="corner tl">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/>
+      <circle cx="28" cy="3" r="2" fill="#AD8A44"/>
+    </svg>
+  </div>
+  <div class="corner tr">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/>
+      <circle cx="28" cy="3" r="2" fill="#AD8A44"/>
+    </svg>
+  </div>
+  <div class="corner bl">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/>
+      <circle cx="28" cy="3" r="2" fill="#AD8A44"/>
+    </svg>
+  </div>
+  <div class="corner br">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+      <path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/>
+      <circle cx="28" cy="3" r="2" fill="#AD8A44"/>
+    </svg>
+  </div>
+
+  <div class="content">
+    <h2 class="heading">Shabbos Norowitz</h2>
+    <div class="flourish">
+      <span class="fl-line l"></span>
+      <span class="fl-dot"></span>
+      <span class="fl-line r"></span>
+    </div>
+    <div class="schedule">
+      <div class="item">
+        <div class="when"><span class="dot"></span>Friday Evening</div>
+        <p class="what">Candle lighting &amp; Seudas Shabbos, 6:15 PM</p>
+      </div>
+      <div class="item">
+        <div class="when"><span class="dot"></span>Shabbos Day</div>
+        <p class="what">Kiddush following davening, 12:00 PM</p>
+      </div>
+      <div class="item">
+        <div class="when"><span class="dot"></span>Motzei Shabbos</div>
+        <p class="what">Bar Mitzvah Celebration, 8:00 PM</p>
+      </div>
+      <div class="item">
+        <div class="when"><span class="dot"></span>Venue</div>
+        <p class="what">Venue name &amp; address here</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

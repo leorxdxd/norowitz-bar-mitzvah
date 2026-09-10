@@ -1,3 +1,6 @@
 .vercel
 .DS_Store
 node_modules
+design/*.html
+!design/Main.dc.html
+!design/Back.dc.html

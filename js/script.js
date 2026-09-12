@@ -3,7 +3,22 @@
   var target = new Date('2026-11-07T18:00:00');
   var elD=document.getElementById('cdDays'), elH=document.getElementById('cdHours'),
       elM=document.getElementById('cdMins'), elS=document.getElementById('cdSecs');
+  var lastVals = {d:null, h:null, m:null, s:null};
   function pad(n){ return String(n).padStart(2,'0'); }
+  // Only the units that actually changed get the little "tick" roll — a
+  // digit that hasn't moved shouldn't flicker every second.
+  function setUnit(el, key, value){
+    var text = pad(value);
+    if(lastVals[key] !== null && lastVals[key] !== value){
+      el.textContent = text;
+      el.classList.remove('tick');
+      void el.offsetWidth; // restart the animation
+      el.classList.add('tick');
+    } else if(lastVals[key] === null){
+      el.textContent = text;
+    }
+    lastVals[key] = value;
+  }
   function tick(){
     var diff = target - new Date();
     if(diff < 0) diff = 0;
@@ -11,8 +26,8 @@
     var h = Math.floor(diff%86400000/3600000);
     var m = Math.floor(diff%3600000/60000);
     var s = Math.floor(diff%60000/1000);
-    elD.textContent = pad(d); elH.textContent = pad(h);
-    elM.textContent = pad(m); elS.textContent = pad(s);
+    setUnit(elD, 'd', d); setUnit(elH, 'h', h);
+    setUnit(elM, 'm', m); setUnit(elS, 's', s);
   }
   tick();
   setInterval(tick, 1000);

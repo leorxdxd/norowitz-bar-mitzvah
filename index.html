@@ -62,13 +62,13 @@
                   <div class="card-corner tr"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                  <div class="seal">YN</div>
-                  <p class="invite-eyebrow">Please join us</p>
-                  <h2 class="who">Yehoshua<br>Norowitz</h2>
-                  <p class="invite-line">as he is called to the Torah as a Bar Mitzvah</p>
-                  <div class="flourish small"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
-                  <p class="invite-date">Motzei Shabbos, 26th of Cheshvan &middot; November 7, 2026</p>
-                  <p class="invite-venue">Details on reverse</p>
+                  <div class="seal" style="--d:0">YN</div>
+                  <p class="invite-eyebrow" style="--d:1">Please join us</p>
+                  <h2 class="who" style="--d:2">Yehoshua<br>Norowitz</h2>
+                  <p class="invite-line" style="--d:3">as he is called to the Torah as a Bar Mitzvah</p>
+                  <div class="flourish small" style="--d:4"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
+                  <p class="invite-date" style="--d:5">Motzei Shabbos, 26th of Cheshvan &middot; November 7, 2026</p>
+                  <p class="invite-venue" style="--d:6">Details on reverse</p>
                 </div>
                 <div class="card-face card-back">
                   <div class="card-frame-outer"></div>
@@ -78,19 +78,19 @@
                   <div class="card-corner bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <h3>Shabbos Norowitz</h3>
-                  <div class="shabbos-item">
+                  <div class="shabbos-item" style="--d:0">
                     <p class="when">Friday Evening</p>
                     <p class="what">Candle lighting &amp; Seudas Shabbos, 6:15 PM</p>
                   </div>
-                  <div class="shabbos-item">
+                  <div class="shabbos-item" style="--d:1">
                     <p class="when">Shabbos Day</p>
                     <p class="what">Kiddush following davening, 12:00 PM</p>
                   </div>
-                  <div class="shabbos-item">
+                  <div class="shabbos-item" style="--d:2">
                     <p class="when">Motzei Shabbos</p>
                     <p class="what">Bar Mitzvah Celebration, 8:00 PM</p>
                   </div>
-                  <div class="shabbos-item">
+                  <div class="shabbos-item" style="--d:3">
                     <p class="when">Venue</p>
                     <p class="what">Venue name &amp; address here</p>
                   </div>
@@ -118,12 +118,12 @@
       <h2>We look forward to celebrating with you.</h2>
 
       <form id="rsvpForm">
-        <div class="field">
+        <div class="field" style="--d:0">
           <label for="fam">Guest / Family Name</label>
           <input id="fam" name="fam" type="text" required autocomplete="name">
         </div>
 
-        <div class="field">
+        <div class="field" style="--d:1">
           <label>Will you be attending?</label>
           <div class="attend-toggle">
             <input type="radio" name="attending" id="attendYes" value="yes" checked>
@@ -134,17 +134,19 @@
         </div>
 
         <div class="conditional-fields" id="conditionalFields">
-          <div class="field">
-            <label for="count">Number of Guests</label>
-            <input id="count" name="count" type="number" min="1" max="10" value="1">
-          </div>
-          <div class="field">
-            <label for="names">Guest Names</label>
-            <textarea id="names" name="names" placeholder="First &amp; last name of each guest"></textarea>
-          </div>
-          <div class="field">
-            <label for="email">Email (optional, for confirmation)</label>
-            <input id="email" name="email" type="email" autocomplete="email">
+          <div class="fields-inner">
+            <div class="field" style="--d:2">
+              <label for="count">Number of Guests</label>
+              <input id="count" name="count" type="number" min="1" max="10" value="1">
+            </div>
+            <div class="field" style="--d:3">
+              <label for="names">Guest Names</label>
+              <textarea id="names" name="names" placeholder="First &amp; last name of each guest"></textarea>
+            </div>
+            <div class="field" style="--d:4">
+              <label for="email">Email (optional, for confirmation)</label>
+              <input id="email" name="email" type="email" autocomplete="email">
+            </div>
           </div>
         </div>
 
@@ -153,6 +155,12 @@
       </form>
 
       <div class="rsvp-confirm" id="rsvpConfirm">
+        <div class="confirm-check">
+          <svg viewBox="0 0 60 60" fill="none">
+            <circle cx="30" cy="30" r="27" stroke="#AD8A44" stroke-width="1.5"/>
+            <path d="M18 31l8 8 16-18" stroke="#7C5A24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <div class="rsvp-monogram">YN</div>
         <p class="confirm-title">Thank you.</p>
         <p class="sub">We look forward to celebrating together.</p>

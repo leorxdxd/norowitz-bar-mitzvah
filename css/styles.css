@@ -72,6 +72,7 @@ a, button{font-family:inherit;}
   transition:background .3s ease, color .3s ease, box-shadow .3s ease, transform .3s ease;
 }
 .rsvp-pill:hover{ background:var(--gold); color:var(--paper); box-shadow:0 10px 20px -12px var(--shadow); transform:translateY(-1px); }
+.rsvp-pill:active{ transform:translateY(0) scale(.96); }
 .rsvp-pill:focus-visible{ outline:2px solid var(--gold-deep); outline-offset:3px; }
 
 main{position:relative; z-index:1;}
@@ -155,8 +156,9 @@ section{
   border-top:1px solid var(--line);
   border-bottom:1px solid var(--line);
 }
-.cd-unit{ display:flex; flex-direction:column; align-items:center; min-width:3.6rem; }
+.cd-unit{ display:flex; flex-direction:column; align-items:center; min-width:3.6rem; overflow:hidden; padding-block:2px; }
 .cd-num{
+  display:inline-block;
   font-family:'Jost', sans-serif;
   font-variant-numeric:tabular-nums;
   font-size:clamp(1.6rem,5vw,2.3rem);
@@ -164,6 +166,15 @@ section{
   color:var(--gold-deep);
   letter-spacing:.03em;
 }
+/* a small roll each time this unit's value actually changes — a refined
+   stand-in for a mechanical flip-clock digit, not a jarring instant swap */
+@keyframes cd-tick{
+  0%{ transform:translateY(0); opacity:1; }
+  40%{ transform:translateY(-40%); opacity:.35; }
+  41%{ transform:translateY(40%); }
+  100%{ transform:translateY(0); opacity:1; }
+}
+.cd-num.tick{ animation:cd-tick .5s cubic-bezier(.4,0,.2,1); }
 .cd-label{
   font-family:'Jost', sans-serif;
   font-size:.62rem;
@@ -314,6 +325,15 @@ section{
   font-size:1.05rem; color:var(--paper);
   box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.18);
 }
+/* the seal "cracks" the instant the envelope opens, just before it fades
+   away with the flap — a small narrative beat, not just a disappearance */
+@keyframes seal-crack{
+  0%{ transform:scale(1) rotate(0deg); }
+  35%{ transform:scale(1.18) rotate(-4deg); }
+  60%{ transform:scale(.9) rotate(3deg); }
+  100%{ transform:scale(1) rotate(0deg); }
+}
+.envelope.is-open .wax-seal{ animation:seal-crack .4s ease-out; }
 
 .card-position{
   position:absolute;
@@ -359,6 +379,11 @@ section{
   transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg));
   transition:transform .35s ease-out;
 }
+/* a small lift toward the guest on desktop hover, inviting the tap-to-flip */
+.card-tilt:hover{
+  transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg)) scale(1.02);
+}
+.card-tilt:hover .card-face{ box-shadow:0 40px 72px -22px var(--shadow); }
 
 .card{
   position:relative;
@@ -399,11 +424,23 @@ section{
   border-radius:3px;
   backface-visibility:hidden;
   box-shadow:0 30px 60px -20px var(--shadow);
+  transition:box-shadow .35s ease-out;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center;
   padding:9% 8%;
 }
 .card-back{ transform:rotateY(180deg); justify-content:flex-start; padding-top:14%; }
+
+/* card-front content reveals piece by piece once the card has arrived,
+   rather than as one flat block — structural frame/corner elements (the
+   first 6 children) just ride the card's own fade */
+.card-front > *{ opacity:0; }
+.card-front > *:nth-child(-n+6){ opacity:1; }
+.envelope.is-open .card-front > *{
+  animation:rise-in .7s cubic-bezier(.22,.68,0,1.03) both;
+  animation-delay:calc(1.05s + var(--d,0) * .1s);
+}
+.envelope.is-open .card-front > *:nth-child(-n+6){ animation:none; opacity:1; }
 
 /* engraved-invitation frame: a double hairline mat with a small flourish
    turned into each corner, echoing a real printed piece */
@@ -442,13 +479,12 @@ section{
 .shabbos-item{
   margin-bottom:1rem;
   opacity:0; transform:translateY(10px);
-  transition:opacity .5s ease, transform .5s ease;
+  /* --d (set inline per item) drives the stagger — robust against sibling
+     count changes, unlike nth-of-type against a mixed bag of divs */
+  transition:opacity .5s ease calc(.48s + var(--d,0) * .08s),
+             transform .5s ease calc(.48s + var(--d,0) * .08s);
 }
 .card.flipped .shabbos-item{ opacity:1; transform:translateY(0); }
-.card.flipped .shabbos-item:nth-of-type(1){ transition-delay:.48s; }
-.card.flipped .shabbos-item:nth-of-type(2){ transition-delay:.56s; }
-.card.flipped .shabbos-item:nth-of-type(3){ transition-delay:.64s; }
-.card.flipped .shabbos-item:nth-of-type(4){ transition-delay:.72s; }
 .shabbos-item .when{
   font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-soft);
@@ -490,7 +526,11 @@ section{
 }
 
 form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
-.field{ position:relative; }
+.field{ position:relative; opacity:0; }
+.rsvp-inner.is-visible .field{
+  animation:rise-in .6s cubic-bezier(.22,.68,0,1.03) both;
+  animation-delay:calc(.15s + var(--d,0) * .08s);
+}
 .field label{
   display:block; font-family:'Jost', sans-serif; font-size:.68rem;
   letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
@@ -527,11 +567,20 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .attend-toggle input:checked + label{ background:var(--gold); color:var(--paper); }
 .attend-toggle input:focus-visible + label{ outline:2px solid var(--gold-deep); outline-offset:2px; }
 
+/* grid-rows 1fr/0fr animates to the content's real height, no max-height
+   guess to snap against or leave a gap under */
 .conditional-fields{
-  display:flex; flex-direction:column; gap:1.3rem;
-  max-height:500px; overflow:hidden; transition:max-height .4s ease, opacity .4s ease;
+  display:grid;
+  grid-template-rows:1fr;
+  opacity:1;
+  transition:grid-template-rows .45s cubic-bezier(.4,0,.2,1), opacity .35s ease;
 }
-.conditional-fields.collapsed{ max-height:0; opacity:0; }
+.conditional-fields.collapsed{ grid-template-rows:0fr; opacity:0; }
+.conditional-fields > .fields-inner{
+  overflow:hidden;
+  min-height:0;
+  display:flex; flex-direction:column; gap:1.3rem;
+}
 
 .submit-btn{
   margin-top:.6rem;
@@ -539,13 +588,16 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   border:none; border-radius:999px;
   padding:1em; font-family:'Jost', sans-serif; font-size:.78rem;
   letter-spacing:.24em; text-transform:uppercase; cursor:pointer;
+  opacity:0;
   transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
 }
+.rsvp-inner.is-visible .submit-btn{ animation:rise-in .6s cubic-bezier(.22,.68,0,1.03) .58s both; }
 .submit-btn:hover{
   background:var(--gold);
   transform:translateY(-2px);
   box-shadow:0 14px 24px -12px var(--shadow);
 }
+.submit-btn:active:not(:disabled){ transform:translateY(0) scale(.97); }
 .submit-btn:focus-visible{ outline:2px solid var(--gold-deep); outline-offset:3px; }
 .submit-btn:disabled{ opacity:.65; cursor:default; transform:none; box-shadow:none; }
 
@@ -563,6 +615,13 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   transition:opacity .6s ease .1s, transform .6s ease .1s;
 }
 .rsvp-confirm.shown{ opacity:1; transform:translateY(0); }
+.confirm-check{ width:60px; height:60px; margin-bottom:.3rem; }
+.confirm-check svg{ width:100%; height:100%; overflow:visible; }
+.confirm-check circle{ stroke-dasharray:190; stroke-dashoffset:190; }
+.confirm-check path{ stroke-dasharray:45; stroke-dashoffset:45; }
+.rsvp-confirm.shown .confirm-check circle{ animation:draw-in .7s ease-out .15s forwards; }
+.rsvp-confirm.shown .confirm-check path{ animation:draw-in .45s ease-out .65s forwards; }
+@keyframes draw-in{ to{ stroke-dashoffset:0; } }
 .confirm-title{ font-size:1.6rem; margin-top:.4rem; }
 .rsvp-confirm p.sub{ color:var(--ink-soft); font-style:italic; }
 

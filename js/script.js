@@ -96,12 +96,24 @@
   }, {threshold:[0,0.25,0.6,1], rootMargin:'-8% 0px -8% 0px'});
   io.observe(envelopeWrap);
 
-  // ---------- card flip ----------
+  // ---------- card flip (a book-style page turn) ----------
   var card = document.getElementById('card');
   function flip(){
-    card.classList.toggle('flipped');
+    var goingToBack = !card.classList.contains('flipped');
+    // Only one turning-* class should ever be on the card at once — the
+    // book-open/book-close keyframes both animate `transform`, and two
+    // classes present together would race on which one the cascade
+    // honours, so the old one is always cleared first.
+    card.classList.remove('turning-open', 'turning-close');
+    card.classList.add(goingToBack ? 'turning-open' : 'turning-close');
+    card.classList.toggle('flipped', goingToBack);
     flipHint.classList.add('hidden');
   }
+  card.addEventListener('animationend', function(e){
+    if(e.animationName === 'book-open' || e.animationName === 'book-close'){
+      card.classList.remove('turning-open', 'turning-close');
+    }
+  });
   card.addEventListener('click', flip);
   card.addEventListener('keydown', function(e){
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flip(); }

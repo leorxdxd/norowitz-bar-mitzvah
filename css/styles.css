@@ -394,6 +394,7 @@ section{
 }
 
 .card-tilt{
+  position:relative;
   transform-style:preserve-3d;
   transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg));
   transition:transform .35s ease-out;
@@ -404,16 +405,41 @@ section{
 }
 .card-tilt:hover .card-face{ box-shadow:0 40px 72px -22px var(--shadow); }
 
+/* a shadow that lives on the NON-rotating layer, so it stays flat to the
+   guest and genuinely dims the page mid-turn, like light catching a real
+   page as it lifts — a shadow painted on the rotating card itself would
+   go edge-on and vanish at the exact moment it should read as darkest */
+.card-tilt::after{
+  content:'';
+  position:absolute; inset:0;
+  z-index:5;
+  border-radius:3px;
+  background:linear-gradient(90deg, rgba(20,14,5,.6), transparent 55%);
+  opacity:0;
+  pointer-events:none;
+}
+@keyframes book-shade{ 0%,100%{ opacity:0; } 48%{ opacity:1; } 52%{ opacity:1; } }
+.card-tilt:has(.card.turning-open)::after,
+.card-tilt:has(.card.turning-close)::after{
+  animation:book-shade 1.05s ease-in-out;
+}
+
 .card{
   position:relative;
   width:100%;
   aspect-ratio:5/6.9;
   cursor:pointer;
   transform-style:preserve-3d;
-  transition:transform .9s cubic-bezier(.4,.15,.2,1);
+  /* hinged at the left edge, like a book's spine, rather than spinning
+     around the centre like a coin */
+  transform-origin:0% 50%;
   will-change:transform;
 }
 .card.flipped{ transform:rotateY(180deg); }
+@keyframes book-open{ from{ transform:rotateY(0deg); } to{ transform:rotateY(180deg); } }
+@keyframes book-close{ from{ transform:rotateY(180deg); } to{ transform:rotateY(0deg); } }
+.card.turning-open{ animation:book-open 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
+.card.turning-close{ animation:book-close 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
 
 /* a single soft sheen sweeps across the card the moment it's revealed */
 .card::before{

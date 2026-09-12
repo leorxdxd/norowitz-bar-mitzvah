@@ -32,6 +32,19 @@
   tick();
   setInterval(tick, 1000);
 
+  // ---------- scroll progress bar ----------
+  // A faint always-visible sense of how far through the experience a
+  // guest is, without needing a nav bar to explain "you are here."
+  var progressFill = document.getElementById('progressFill');
+  function onScrollProgress(){
+    var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+    progressFill.style.width = Math.min(Math.max(pct, 0), 100) + '%';
+  }
+  window.addEventListener('scroll', onScrollProgress, {passive:true});
+  window.addEventListener('resize', onScrollProgress);
+  onScrollProgress();
+
   // ---------- hero fade on scroll ----------
   // Fades (and fully hides) well before the invitation stage can appear,
   // so the countdown never visually overlaps the envelope during the
@@ -58,6 +71,7 @@
   var envelope = document.getElementById('envelope');
   var envelopeWrap = document.getElementById('envelopeWrap');
   var flipHint = document.getElementById('flipHint');
+  var continueHint = document.getElementById('continueHint');
   var revealed = false, opened = false;
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
@@ -70,6 +84,9 @@
         opened = true;
         envelope.classList.add('is-open');
         setTimeout(function(){ flipHint.classList.add('ready'); }, 2000);
+        // A quieter, later cue for a guest who isn't going to flip the
+        // card at all — they should still learn there is more below.
+        setTimeout(function(){ continueHint.classList.add('ready'); }, 4200);
       }
       if(revealed && opened) io.disconnect();
     });

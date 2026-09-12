@@ -16,6 +16,7 @@
 <div class="watermark" aria-hidden="true">YN</div>
 <div class="grain" aria-hidden="true"></div>
 
+<div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
 <button class="rsvp-pill" id="rsvpPill">RSVP</button>
 
 <main>
@@ -104,9 +105,15 @@
           </div>
         </div>
       </div>
-      <div class="flip-hint" id="flipHint">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5"/><path d="M6 21v-4h4"/></svg>
-        Tap the invitation to turn it over
+      <div class="hints">
+        <div class="flip-hint" id="flipHint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5"/><path d="M6 21v-4h4"/></svg>
+          Tap the invitation to turn it over
+        </div>
+        <div class="continue-hint" id="continueHint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+          Continue scrolling for RSVP
+        </div>
       </div>
     </div>
   </section>

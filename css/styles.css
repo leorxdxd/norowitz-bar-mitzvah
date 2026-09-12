@@ -24,7 +24,11 @@ body{
   color:var(--ink);
   font-family:'Cormorant Garamond', Georgia, serif;
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  /* NOT overflow-x:hidden here: on iOS Safari, ANY overflow on body/html
+     breaks position:sticky in every descendant — which is exactly what
+     pins the envelope while it opens. The one thing that could bleed
+     horizontally (the giant watermark letters) is clipped on itself
+     instead, below. */
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}
@@ -35,6 +39,7 @@ a, button{font-family:inherit;}
 /* ---------- watermark ---------- */
 .watermark{
   position:fixed; inset:0;
+  overflow:hidden;
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
   z-index:0;

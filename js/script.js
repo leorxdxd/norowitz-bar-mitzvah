@@ -83,6 +83,9 @@
       if(ratio > 0.6 && !opened){
         opened = true;
         envelope.classList.add('is-open');
+        // Waits for the card-position entrance transform (translate+scale,
+        // ~1.35s total) to finish before StPageFlip measures the mount.
+        setTimeout(initPageFlip, 1400);
         setTimeout(function(){ flipHint.classList.add('ready'); }, 2000);
         // A quieter, later cue for a guest who isn't going to flip the
         // card at all — they should still learn there is more below.
@@ -96,44 +99,55 @@
   }, {threshold:[0,0.25,0.6,1], rootMargin:'-8% 0px -8% 0px'});
   io.observe(envelopeWrap);
 
-  // ---------- card flip (a book-style page turn) ----------
-  var card = document.getElementById('card');
-  function flip(){
-    var goingToBack = !card.classList.contains('flipped');
-    // Only one turning-* class should ever be on the card at once — the
-    // book-open/book-close keyframes both animate `transform`, and two
-    // classes present together would race on which one the cascade
-    // honours, so the old one is always cleared first.
-    card.classList.remove('turning-open', 'turning-close');
-    card.classList.add(goingToBack ? 'turning-open' : 'turning-close');
-    card.classList.toggle('flipped', goingToBack);
-    flipHint.classList.add('hidden');
+  // ---------- card flip: a real paper curl, via the StPageFlip library ----------
+  // Initialized lazily, once the envelope has fully opened and the card's
+  // own entrance transform has settled — StPageFlip reads the mount
+  // element's rendered size at init time (`size:'stretch'`), and initing
+  // mid-transition (while card-position is still scaling in) would lock
+  // it to a too-small size.
+  var bookMount = document.getElementById('bookMount');
+  var pageFlipInstance = null;
+
+  function initPageFlip(){
+    if(pageFlipInstance) return;
+    if(!window.St){
+      // CDN may still be loading — give it one more chance, then fall
+      // back to a static front page rather than staying invisible.
+      setTimeout(function(){
+        if(window.St) initPageFlip();
+        else bookMount.classList.add('is-fallback');
+      }, 1200);
+      return;
+    }
+    pageFlipInstance = new St.PageFlip(bookMount, {
+      width: 300,
+      height: 414,
+      size: 'stretch',
+      minWidth: 200,
+      maxWidth: 460,
+      minHeight: 276,
+      maxHeight: 635,
+      maxShadowOpacity: 0.4,
+      flippingTime: 900,
+      showCover: false,
+      usePortrait: true
+    });
+    pageFlipInstance.loadFromHTML(bookMount.querySelectorAll('.my-page'));
+    pageFlipInstance.on('flip', function(e){
+      bookMount.classList.toggle('is-back', e.data === 1);
+      flipHint.classList.add('hidden');
+    });
+    bookMount.classList.add('is-ready');
   }
-  card.addEventListener('animationend', function(e){
-    if(e.animationName === 'book-open' || e.animationName === 'book-close'){
-      card.classList.remove('turning-open', 'turning-close');
+
+  bookMount.addEventListener('keydown', function(e){
+    if(!pageFlipInstance) return;
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      var onBack = bookMount.classList.contains('is-back');
+      onBack ? pageFlipInstance.flipPrev() : pageFlipInstance.flipNext();
     }
   });
-  card.addEventListener('click', flip);
-  card.addEventListener('keydown', function(e){
-    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flip(); }
-  });
-
-  // ---------- gentle desktop tilt toward the pointer ----------
-  var cardTilt = document.getElementById('cardTilt');
-  if(window.matchMedia('(pointer:fine)').matches && !reduceMotion){
-    envelopeWrap.addEventListener('mousemove', function(e){
-      var r = envelopeWrap.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width - 0.5;
-      var py = (e.clientY - r.top) / r.height - 0.5;
-      cardTilt.style.setProperty('--tiltX', (py * -7) + 'deg');
-      cardTilt.style.setProperty('--tiltY', (px * 9) + 'deg');
-    });
-    envelopeWrap.addEventListener('mouseleave', function(){
-      cardTilt.style.setProperty('--tiltX', '0deg');
-      cardTilt.style.setProperty('--tiltY', '0deg');
-    });
-  }
 
   // ---------- rsvp section fades in as it's reached ----------
   var rsvpInner = document.getElementById('rsvpInner');

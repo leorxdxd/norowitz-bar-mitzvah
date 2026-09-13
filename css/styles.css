@@ -393,68 +393,26 @@ section{
   50%{ transform:translateY(-10px) rotate(-.35deg); }
 }
 
-.card-tilt{
-  position:relative;
-  transform-style:preserve-3d;
-  transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg));
-  transition:transform .35s ease-out;
-}
-/* a small lift toward the guest on desktop hover, inviting the tap-to-flip */
-.card-tilt:hover{
-  transform:rotateX(var(--tiltX, 0deg)) rotateY(var(--tiltY, 0deg)) scale(1.02);
-}
-.card-tilt:hover .card-face{ box-shadow:0 40px 72px -22px var(--shadow); }
-
-/* a shadow that lives on the NON-rotating layer, so it stays flat to the
-   guest and genuinely dims the page mid-turn, like light catching a real
-   page as it lifts — a shadow painted on the rotating card itself would
-   go edge-on and vanish at the exact moment it should read as darkest */
-.card-tilt::after{
-  content:'';
-  position:absolute; inset:0;
-  z-index:5;
-  border-radius:3px;
-  background:linear-gradient(90deg, rgba(20,14,5,.6), transparent 55%);
-  opacity:0;
-  pointer-events:none;
-}
-@keyframes book-shade{ 0%,100%{ opacity:0; } 48%{ opacity:1; } 52%{ opacity:1; } }
-.card-tilt:has(.card.turning-open)::after,
-.card-tilt:has(.card.turning-close)::after{
-  animation:book-shade 1.05s ease-in-out;
-}
-
-.card{
+/* StPageFlip (loaded via CDN) owns the turn itself — its own canvas-drawn
+   curl and shadow replace what used to be hand-rolled rotateY + gradient
+   overlays here. This is just the mount point, sized exactly like the
+   plain .card it replaces so nothing else in the envelope/float chain
+   needs to change. */
+.book-mount{
   position:relative;
   width:100%;
   aspect-ratio:5/6.9;
   cursor:pointer;
-  transform-style:preserve-3d;
-  /* hinged at the left edge, like a book's spine, rather than spinning
-     around the centre like a coin */
-  transform-origin:0% 50%;
-  will-change:transform;
+  visibility:hidden;
 }
-/* Rotating a full 180deg around the LEFT edge doesn't just turn the card in
-   place — it swings the whole rectangle to sit immediately to the LEFT of
-   that hinge (mirrored across it), so without this translateX the flipped
-   card visibly drifts off-centre. translateX(100%) — outside rotateY in
-   the list, so it applies in the parent's frame, after the rotation —
-   slides it back by exactly its own width to land centred again. */
-.card.flipped{ transform:translateX(100%) rotateY(180deg); }
-@keyframes book-open{
-  from{ transform:translateX(0%) rotateY(0deg); }
-  to{ transform:translateX(100%) rotateY(180deg); }
-}
-@keyframes book-close{
-  from{ transform:translateX(100%) rotateY(180deg); }
-  to{ transform:translateX(0%) rotateY(0deg); }
-}
-.card.turning-open{ animation:book-open 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
-.card.turning-close{ animation:book-close 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
+.book-mount.is-ready{ visibility:visible; }
+/* if the CDN library never loads, at least show the front page cleanly
+   instead of both faces stacked on top of each other forever */
+.book-mount.is-fallback{ visibility:visible; }
+.book-mount.is-fallback .my-page:last-child{ display:none; }
 
 /* a single soft sheen sweeps across the card the moment it's revealed */
-.card::before{
+.book-mount::before{
   content:'';
   position:absolute; inset:0;
   z-index:4;
@@ -464,7 +422,7 @@ section{
   pointer-events:none;
   opacity:0;
 }
-.envelope.is-open .card::before{
+.envelope.is-open .book-mount::before{
   animation:sheen 1.5s ease-out 2.4s 1;
 }
 @keyframes sheen{
@@ -479,14 +437,12 @@ section{
   background:linear-gradient(155deg, var(--paper) 0%, var(--ivory) 100%);
   border:1px solid var(--paper-edge);
   border-radius:3px;
-  backface-visibility:hidden;
   box-shadow:0 30px 60px -20px var(--shadow);
-  transition:box-shadow .35s ease-out;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center;
   padding:9% 8%;
 }
-.card-back{ transform:rotateY(180deg); justify-content:flex-start; padding-top:14%; }
+.card-back{ justify-content:flex-start; padding-top:14%; }
 
 /* card-front content reveals piece by piece once the card has arrived,
    rather than as one flat block — structural frame/corner elements (the
@@ -541,7 +497,7 @@ section{
   transition:opacity .5s ease calc(.48s + var(--d,0) * .08s),
              transform .5s ease calc(.48s + var(--d,0) * .08s);
 }
-.card.flipped .shabbos-item{ opacity:1; transform:translateY(0); }
+.book-mount.is-back .shabbos-item{ opacity:1; transform:translateY(0); }
 .shabbos-item .when{
   font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-soft);

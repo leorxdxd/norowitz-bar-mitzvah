@@ -63,6 +63,15 @@
   window.addEventListener('scroll', onScroll, {passive:true});
   onScroll();
 
+  // ---------- scroll-cue button: an easy way in for anyone unsure they
+  // should scroll (or unable to scroll precisely) ----------
+  document.getElementById('scrollCueBtn').addEventListener('click', function(){
+    document.getElementById('inviteStage').scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start'
+    });
+  });
+
   // ---------- envelope appear + open, each once per visit ----------
   // Observing the (viewport-sized) envelope itself, rather than the tall
   // scroll-distance section around it, keeps the intersection ratio

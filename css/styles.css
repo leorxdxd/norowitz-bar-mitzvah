@@ -204,8 +204,12 @@ section{
 }
 .cd-sep{ color:var(--gold); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
 
+/* a real <button> now, not just a decorative cue — reset the browser
+   button chrome but keep every visual property it already had */
 .scroll-cue{
-  margin-top:2.2rem;
+  -webkit-appearance:none; appearance:none;
+  border:none; background:none; padding:0; margin-top:2.2rem;
+  cursor:pointer;
   display:flex; flex-direction:column; align-items:center; gap:.75rem;
   font-family:'Jost', sans-serif;
   font-size:.76rem;
@@ -223,12 +227,23 @@ section{
   color:var(--gold-deep);
   box-shadow:0 8px 18px -10px var(--shadow);
   animation:cue-bounce 1.8s ease-in-out infinite;
+  transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
 }
 .scroll-cue-icon svg{ width:22px; height:22px; }
 @keyframes cue-bounce{
   0%,100%{ transform:translateY(0); }
   50%{ transform:translateY(9px); }
 }
+/* an obvious, tactile response to hover/press — reassurance for anyone
+   unsure whether this round shape is actually clickable */
+.scroll-cue:hover .scroll-cue-icon{
+  background:var(--gold);
+  color:var(--paper);
+  box-shadow:0 12px 22px -10px var(--shadow);
+  transform:scale(1.08);
+}
+.scroll-cue:active .scroll-cue-icon{ transform:scale(.96); }
+.scroll-cue:focus-visible .scroll-cue-icon{ outline:2px solid var(--gold-deep); outline-offset:3px; }
 
 /* ---------- invitation stage ---------- */
 .invite-stage{ min-height:175vh; padding-top:0; z-index:2; }

@@ -405,13 +405,46 @@ section{
 }
 .envelope.is-open .card-position::after{ opacity:.5; }
 
-.card-float{ animation:none; }
+.card-float{ position:relative; animation:none; }
 .envelope.is-open .card-float{
   animation:float 5.5s ease-in-out 2.3s infinite;
 }
 @keyframes float{
   0%,100%{ transform:translateY(0) rotate(.35deg); }
   50%{ transform:translateY(-10px) rotate(-.35deg); }
+}
+
+/* a little pointing hand taps the card itself, in case the text hint
+   below it isn't obvious enough — sits centred over the card, out of the
+   way of the click (pointer-events:none), and disappears the moment the
+   guest actually turns the page */
+.tap-hand{
+  position:absolute; top:50%; left:50%;
+  width:15%; aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  z-index:6;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .5s ease;
+}
+.tap-hand.ready{ opacity:1; animation:tap-pulse 1.6s ease-in-out infinite; }
+.tap-hand.hidden{ opacity:0; }
+.tap-hand svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 6px 10px rgba(36,28,18,.35)); }
+.tap-hand .tap-ring{
+  transform-box:fill-box;
+  transform-origin:center;
+  opacity:0;
+}
+.tap-hand.ready .tap-ring{ animation:tap-ring 1.6s ease-out infinite; }
+@keyframes tap-pulse{
+  0%,30%,100%{ transform:translateY(0); }
+  15%{ transform:translateY(14%); }
+}
+@keyframes tap-ring{
+  0%,25%{ opacity:0; transform:scale(.4); }
+  40%{ opacity:.5; }
+  70%{ opacity:0; transform:scale(1.5); }
+  100%{ opacity:0; transform:scale(1.5); }
 }
 
 /* StPageFlip (loaded via CDN) owns the turn itself — its own canvas-drawn

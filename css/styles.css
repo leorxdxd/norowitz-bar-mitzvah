@@ -435,9 +435,21 @@ section{
   transform-origin:0% 50%;
   will-change:transform;
 }
-.card.flipped{ transform:rotateY(180deg); }
-@keyframes book-open{ from{ transform:rotateY(0deg); } to{ transform:rotateY(180deg); } }
-@keyframes book-close{ from{ transform:rotateY(180deg); } to{ transform:rotateY(0deg); } }
+/* Rotating a full 180deg around the LEFT edge doesn't just turn the card in
+   place — it swings the whole rectangle to sit immediately to the LEFT of
+   that hinge (mirrored across it), so without this translateX the flipped
+   card visibly drifts off-centre. translateX(100%) — outside rotateY in
+   the list, so it applies in the parent's frame, after the rotation —
+   slides it back by exactly its own width to land centred again. */
+.card.flipped{ transform:translateX(100%) rotateY(180deg); }
+@keyframes book-open{
+  from{ transform:translateX(0%) rotateY(0deg); }
+  to{ transform:translateX(100%) rotateY(180deg); }
+}
+@keyframes book-close{
+  from{ transform:translateX(100%) rotateY(180deg); }
+  to{ transform:translateX(0%) rotateY(0deg); }
+}
 .card.turning-open{ animation:book-open 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
 .card.turning-close{ animation:book-close 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
 

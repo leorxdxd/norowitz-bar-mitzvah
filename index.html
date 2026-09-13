@@ -57,32 +57,7 @@
           <div class="card-position">
             <div class="card-float">
               <div class="card-tilt" id="cardTilt">
-              <div class="card-face page-under">
-                <div class="card-frame-outer"></div>
-                <div class="card-frame-inner"></div>
-                <div class="card-corner tl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                <div class="card-corner tr"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                <div class="card-corner bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                <div class="card-corner br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                <h3>Shabbos Norowitz</h3>
-                <div class="shabbos-item" style="--d:0">
-                  <p class="when">Friday Evening</p>
-                  <p class="what">Candle lighting &amp; Seudas Shabbos, 6:15 PM</p>
-                </div>
-                <div class="shabbos-item" style="--d:1">
-                  <p class="when">Shabbos Day</p>
-                  <p class="what">Kiddush following davening, 12:00 PM</p>
-                </div>
-                <div class="shabbos-item" style="--d:2">
-                  <p class="when">Motzei Shabbos</p>
-                  <p class="what">Bar Mitzvah Celebration, 8:00 PM</p>
-                </div>
-                <div class="shabbos-item" style="--d:3">
-                  <p class="when">Venue</p>
-                  <p class="what">Venue name &amp; address here</p>
-                </div>
-              </div>
-              <div class="card" id="card" role="button" tabindex="0" aria-label="Invitation card, tap to open">
+              <div class="card" id="card" role="button" tabindex="0" aria-label="Invitation card, tap to flip">
                 <div class="card-face card-front">
                   <div class="card-frame-outer"></div>
                   <div class="card-frame-inner"></div>
@@ -96,17 +71,32 @@
                   <p class="invite-line" style="--d:3">as he is called to the Torah as a Bar Mitzvah</p>
                   <div class="flourish small" style="--d:4"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
                   <p class="invite-date" style="--d:5">Motzei Shabbos, 26th of Cheshvan &middot; November 7, 2026</p>
-                  <p class="invite-venue" style="--d:6">Open for Shabbos details</p>
+                  <p class="invite-venue" style="--d:6">Details on reverse</p>
                 </div>
-                <!-- the inside of the cover: blank stock, like a real card -->
-                <div class="card-face card-back" aria-hidden="true">
+                <div class="card-face card-back">
                   <div class="card-frame-outer"></div>
                   <div class="card-frame-inner"></div>
                   <div class="card-corner tl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner tr"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner bl"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
                   <div class="card-corner br"><svg viewBox="0 0 34 34" fill="none"><path d="M2 32 C2 32 2 12 17 10 C26 9 28 3 28 3" stroke="#AD8A44" stroke-width="1.2"/><circle cx="28" cy="3" r="2" fill="#AD8A44"/></svg></div>
-                  <div class="inside-mark">YN</div>
+                  <h3>Shabbos Norowitz</h3>
+                  <div class="shabbos-item" style="--d:0">
+                    <p class="when">Friday Evening</p>
+                    <p class="what">Candle lighting &amp; Seudas Shabbos, 6:15 PM</p>
+                  </div>
+                  <div class="shabbos-item" style="--d:1">
+                    <p class="when">Shabbos Day</p>
+                    <p class="what">Kiddush following davening, 12:00 PM</p>
+                  </div>
+                  <div class="shabbos-item" style="--d:2">
+                    <p class="when">Motzei Shabbos</p>
+                    <p class="what">Bar Mitzvah Celebration, 8:00 PM</p>
+                  </div>
+                  <div class="shabbos-item" style="--d:3">
+                    <p class="when">Venue</p>
+                    <p class="what">Venue name &amp; address here</p>
+                  </div>
                 </div>
               </div>
               </div>
@@ -120,7 +110,7 @@
       <div class="hints">
         <div class="flip-hint" id="flipHint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5"/><path d="M6 21v-4h4"/></svg>
-          Tap the invitation to open it
+          Tap the invitation to turn it over
         </div>
         <div class="continue-hint" id="continueHint">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>

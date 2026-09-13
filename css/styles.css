@@ -413,9 +413,6 @@ section{
   content:'';
   position:absolute; inset:0;
   z-index:5;
-  /* inside a preserve-3d parent, depth (not z-index) decides what covers
-     what — this keeps the shadow in front of both pages */
-  transform:translateZ(6px);
   border-radius:3px;
   background:linear-gradient(90deg, rgba(20,14,5,.6), transparent 55%);
   opacity:0;
@@ -425,17 +422,6 @@ section{
 .card-tilt:has(.card.turning-open)::after,
 .card-tilt:has(.card.turning-close)::after{
   animation:book-shade 1.05s ease-in-out;
-}
-
-/* The page that lies UNDER the cover, in the cover's own footprint. The
-   cover is hinged on its left edge, so opening swings it to the LEFT and
-   uncovers this one on the right — a real book, where the printed page is
-   the one revealed, not the one that turned. translateZ keeps it off the
-   cover's plane so the two don't z-fight while closed. */
-.page-under{
-  transform:translateZ(-2px);
-  justify-content:flex-start;
-  padding-top:14%;
 }
 
 .card{
@@ -449,28 +435,9 @@ section{
   transform-origin:0% 50%;
   will-change:transform;
 }
-/* The cover stops short of lying flat, the way a book you are holding open
-   sits. Two reasons: it looks more like a real held book than a flattened
-   one, and a cover laid fully flat would double the spread's width — which
-   simply does not fit a phone at a readable text size. Narrower screens
-   get a steeper angle so the swung cover always stays on screen. */
-.card{ --openAngle:135deg; }
-@media (max-width:760px){ .card{ --openAngle:115deg; } }
-@media (max-width:480px){ .card{ --openAngle:100deg; } }
-
-.card.flipped{ transform:rotateY(var(--openAngle)); }
-/* the elliptical radius at the middle step bows the spine-side edge
-   mid-turn, so the page reads as bending rather than as a rigid pane */
-@keyframes book-open{
-  0%{ transform:rotateY(0deg); border-radius:3px; }
-  55%{ border-top-left-radius:6px 54px; border-bottom-left-radius:6px 54px; }
-  100%{ transform:rotateY(var(--openAngle)); border-radius:3px; }
-}
-@keyframes book-close{
-  0%{ transform:rotateY(var(--openAngle)); border-radius:3px; }
-  55%{ border-top-left-radius:6px 54px; border-bottom-left-radius:6px 54px; }
-  100%{ transform:rotateY(0deg); border-radius:3px; }
-}
+.card.flipped{ transform:rotateY(180deg); }
+@keyframes book-open{ from{ transform:rotateY(0deg); } to{ transform:rotateY(180deg); } }
+@keyframes book-close{ from{ transform:rotateY(180deg); } to{ transform:rotateY(0deg); } }
 .card.turning-open{ animation:book-open 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
 .card.turning-close{ animation:book-close 1.05s cubic-bezier(.65,.05,.24,1) forwards; }
 
@@ -507,25 +474,7 @@ section{
   text-align:center;
   padding:9% 8%;
 }
-.card-back{ transform:rotateY(180deg); }
-.inside-mark{
-  font-family:'Marcellus', serif;
-  font-size:2.6rem;
-  color:var(--gold);
-  opacity:.18;
-  letter-spacing:.06em;
-}
-
-/* the bound-edge shadow every page in a real book has along its spine.
-   No z-index: it must stay behind the frame artwork and the text, which
-   an explicit z-index would jump it in front of. */
-.card-face::before{
-  content:'';
-  position:absolute; inset:0;
-  border-radius:inherit;
-  background:linear-gradient(90deg, rgba(20,14,5,.14), rgba(20,14,5,.04) 5%, transparent 12%);
-  pointer-events:none;
-}
+.card-back{ transform:rotateY(180deg); justify-content:flex-start; padding-top:14%; }
 
 /* card-front content reveals piece by piece once the card has arrived,
    rather than as one flat block — structural frame/corner elements (the
@@ -568,7 +517,7 @@ section{
 .card-face .invite-date{ margin-top:.9rem; font-size:1.18rem; letter-spacing:.02em; }
 .card-face .invite-venue{ margin-top:.25rem; font-size:1.02rem; color:var(--ink-soft); }
 
-.page-under h3{
+.card-back h3{
   font-family:'Marcellus', serif; font-size:1.5rem; color:var(--gold-deep);
   margin-bottom:.9rem;
 }
@@ -580,9 +529,7 @@ section{
   transition:opacity .5s ease calc(.48s + var(--d,0) * .08s),
              transform .5s ease calc(.48s + var(--d,0) * .08s);
 }
-/* the schedule now lives on the page UNDER the cover, so the reveal is
-   driven by the cover having turned, read from the sibling above it */
-.card-tilt:has(.card.flipped) .shabbos-item{ opacity:1; transform:translateY(0); }
+.card.flipped .shabbos-item{ opacity:1; transform:translateY(0); }
 .shabbos-item .when{
   font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-soft);

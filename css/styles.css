@@ -414,34 +414,6 @@ section{
   50%{ transform:translateY(-10px) rotate(-.35deg); }
 }
 
-/* a little pointing hand taps the card's own corner — where a guest would
-   actually grab a real page to turn it — in case the text hint below
-   isn't obvious enough. Out of the way of the click itself
-   (pointer-events:none), and disappears the moment the guest turns the
-   page for real. */
-.tap-hand{
-  position:absolute; bottom:6%; right:5%;
-  width:13%; aspect-ratio:6/7;
-  z-index:6;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .5s ease;
-}
-.tap-hand.ready{ opacity:1; animation:tap-pulse 1.6s ease-in-out infinite; }
-.tap-hand.hidden{ opacity:0; }
-.tap-hand svg{ width:100%; height:100%; overflow:visible; filter:drop-shadow(0 5px 8px rgba(36,28,18,.35)); }
-.tap-hand .tap-lines{ opacity:0; }
-.tap-hand.ready .tap-lines{ animation:tap-lines-flash 1.6s ease-in-out infinite; }
-@keyframes tap-pulse{
-  0%,30%,100%{ transform:translateY(0); }
-  15%{ transform:translateY(12%); }
-}
-@keyframes tap-lines-flash{
-  0%,100%{ opacity:0; }
-  15%{ opacity:1; }
-  32%{ opacity:0; }
-}
-
 /* StPageFlip (loaded via CDN) owns the turn itself — its own canvas-drawn
    curl and shadow replace what used to be hand-rolled rotateY + gradient
    overlays here. This is just the mount point, sized exactly like the
@@ -558,17 +530,22 @@ section{
 }
 .shabbos-item .what{ font-size:1.12rem; margin-top:.15rem; }
 
-.hints{ display:flex; flex-direction:column; align-items:center; gap:.6rem; }
+/* sits right under the card itself (not a separate block far below the
+   whole envelope) so it reads as clearly "about this" — a guest asked for
+   exactly this after the hint felt too far away to notice */
 .flip-hint{
-  display:flex; align-items:center; gap:.5rem;
+  position:absolute; top:100%; left:50%;
+  margin-top:14px;
+  width:max-content; max-width:86vw;
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
   font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--ink-soft);
-  opacity:0; transform:translateY(6px);
+  opacity:0; transform:translateX(-50%) translateY(6px);
   transition:opacity .6s ease, transform .6s ease;
 }
-.flip-hint.ready{ opacity:1; transform:translateY(0); }
+.flip-hint.ready{ opacity:1; transform:translateX(-50%) translateY(0); }
 .flip-hint.hidden{ opacity:0; }
-.flip-hint svg{ width:16px; height:16px; animation:hint-nudge 2.4s ease-in-out infinite; }
+.flip-hint svg{ width:16px; height:16px; flex:none; animation:hint-nudge 2.4s ease-in-out infinite; }
 @keyframes hint-nudge{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(28deg); } }
 
 /* a second, quieter cue so a guest who isn't interested in flipping the

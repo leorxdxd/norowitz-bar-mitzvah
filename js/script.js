@@ -80,7 +80,6 @@
   var envelope = document.getElementById('envelope');
   var envelopeWrap = document.getElementById('envelopeWrap');
   var flipHint = document.getElementById('flipHint');
-  var tapHand = document.getElementById('tapHand');
   var continueHint = document.getElementById('continueHint');
   var revealed = false, opened = false;
   var io = new IntersectionObserver(function(entries){
@@ -96,10 +95,7 @@
         // Waits for the card-position entrance transform (translate+scale,
         // ~1.35s total) to finish before StPageFlip measures the mount.
         setTimeout(initPageFlip, 1400);
-        setTimeout(function(){
-          flipHint.classList.add('ready');
-          tapHand.classList.add('ready');
-        }, 2000);
+        setTimeout(function(){ flipHint.classList.add('ready'); }, 2000);
         // A quieter, later cue for a guest who isn't going to flip the
         // card at all — they should still learn there is more below.
         setTimeout(function(){ continueHint.classList.add('ready'); }, 4200);
@@ -149,7 +145,6 @@
     pageFlipInstance.on('flip', function(e){
       bookMount.classList.toggle('is-back', e.data === 1);
       flipHint.classList.add('hidden');
-      tapHand.classList.add('hidden');
     });
     bookMount.classList.add('is-ready');
   }

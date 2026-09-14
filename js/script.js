@@ -1,6 +1,9 @@
 (function(){
   // ---------- countdown ----------
-  var target = new Date('2026-11-07T18:00:00');
+  // Counts down to the Weekday Celebration (Wed, Nov 18, 2026, 7:00 PM) —
+  // the first of the two real printed events, chronologically. Shabbos
+  // Kodesh Parshas Vayeitzei (Sat, Nov 21) follows a few days after.
+  var target = new Date('2026-11-18T19:00:00');
   var elD=document.getElementById('cdDays'), elH=document.getElementById('cdHours'),
       elM=document.getElementById('cdMins'), elS=document.getElementById('cdSecs');
   var lastVals = {d:null, h:null, m:null, s:null};
@@ -79,7 +82,7 @@
   // not "half of a 175vh spacer".
   var envelope = document.getElementById('envelope');
   var envelopeWrap = document.getElementById('envelopeWrap');
-  var flipHint = document.getElementById('flipHint');
+  var cardsHint = document.getElementById('cardsHint');
   var continueHint = document.getElementById('continueHint');
   var revealed = false, opened = false;
   var io = new IntersectionObserver(function(entries){
@@ -92,13 +95,17 @@
       if(ratio > 0.6 && !opened){
         opened = true;
         envelope.classList.add('is-open');
-        // Waits for the card-position entrance transform (translate+scale,
-        // ~1.35s total) to finish before StPageFlip measures the mount.
-        setTimeout(initPageFlip, 1400);
-        setTimeout(function(){ flipHint.classList.add('ready'); }, 2000);
-        // A quieter, later cue for a guest who isn't going to flip the
-        // card at all — they should still learn there is more below.
-        setTimeout(function(){ continueHint.classList.add('ready'); }, 4200);
+        // The Shabbos/weekend invitation comes out first and is given time
+        // to fully arrive — slide, sheen sweep and its own content stagger
+        // all settle (~1.65s after it starts) — before the weekday
+        // invitation follows it out, so the two visibly happen one after
+        // the other rather than overlapping.
+        setTimeout(function(){ cardA.classList.add('is-out'); }, 650);
+        setTimeout(function(){ cardB.classList.add('is-out'); }, 2500);
+        setTimeout(function(){ cardsHint.classList.add('ready'); }, 4300);
+        // A quieter, later cue for a guest who isn't going to tap the
+        // cards at all — they should still learn there is more below.
+        setTimeout(function(){ continueHint.classList.add('ready'); }, 6000);
       }
       if(revealed && opened) io.disconnect();
     });
@@ -108,54 +115,26 @@
   }, {threshold:[0,0.25,0.6,1], rootMargin:'-8% 0px -8% 0px'});
   io.observe(envelopeWrap);
 
-  // ---------- card flip: a real paper curl, via the StPageFlip library ----------
-  // Initialized lazily, once the envelope has fully opened and the card's
-  // own entrance transform has settled — StPageFlip reads the mount
-  // element's rendered size at init time (`size:'stretch'`), and initing
-  // mid-transition (while card-position is still scaling in) would lock
-  // it to a too-small size.
-  var bookMount = document.getElementById('bookMount');
-  var pageFlipInstance = null;
+  // ---------- two invitation cards: tap either to bring it forward ----------
+  // Both cards fan out of the envelope on their own timers (above); after
+  // that, a guest can tap/click or Enter/Space either one to swap which
+  // sits on top and dead-centre, like shuffling two physical cards.
+  var cardA = document.getElementById('cardA');
+  var cardB = document.getElementById('cardB');
+  var cards = [cardA, cardB];
+  cardA.classList.add('is-front');
 
-  function initPageFlip(){
-    if(pageFlipInstance) return;
-    if(!window.St){
-      // CDN may still be loading — give it one more chance, then fall
-      // back to a static front page rather than staying invisible.
-      setTimeout(function(){
-        if(window.St) initPageFlip();
-        else bookMount.classList.add('is-fallback');
-      }, 1200);
-      return;
-    }
-    pageFlipInstance = new St.PageFlip(bookMount, {
-      width: 300,
-      height: 414,
-      size: 'stretch',
-      minWidth: 200,
-      maxWidth: 460,
-      minHeight: 276,
-      maxHeight: 635,
-      maxShadowOpacity: 0.4,
-      flippingTime: 900,
-      showCover: false,
-      usePortrait: true
-    });
-    pageFlipInstance.loadFromHTML(bookMount.querySelectorAll('.my-page'));
-    pageFlipInstance.on('flip', function(e){
-      bookMount.classList.toggle('is-back', e.data === 1);
-      flipHint.classList.add('hidden');
-    });
-    bookMount.classList.add('is-ready');
+  function bringToFront(card){
+    cards.forEach(function(c){ c.classList.toggle('is-front', c === card); });
   }
-
-  bookMount.addEventListener('keydown', function(e){
-    if(!pageFlipInstance) return;
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      var onBack = bookMount.classList.contains('is-back');
-      onBack ? pageFlipInstance.flipPrev() : pageFlipInstance.flipNext();
-    }
+  cards.forEach(function(card){
+    card.addEventListener('click', function(){ bringToFront(card); });
+    card.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        bringToFront(card);
+      }
+    });
   });
 
   // ---------- rsvp section fades in as it's reached ----------

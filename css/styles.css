@@ -94,29 +94,35 @@ body::before{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
+  /* v1 of this swept from a light #E9C769 corner down to #AD8A22 at its
+     shadow point — still gold on paper, but combined with the vignette
+     below it read as genuinely dark in the corners/edges, not just a lit
+     sweep. Narrowed the whole range upward so even the "shadow" stop
+     stays a clearly bright gold — barely a shadow at all now, just enough
+     variation that it still reads as a lit material, not a flat swatch. */
   background:
-    radial-gradient(85% 60% at 3% -4%, rgba(255,244,214,.5) 0%, rgba(255,244,214,0) 60%),
-    radial-gradient(85% 60% at 97% 104%, rgba(255,244,214,.4) 0%, rgba(255,244,214,0) 60%),
+    radial-gradient(85% 60% at 3% -4%, rgba(255,248,224,.55) 0%, rgba(255,248,224,0) 62%),
+    radial-gradient(85% 60% at 97% 104%, rgba(255,248,224,.45) 0%, rgba(255,248,224,0) 62%),
     linear-gradient(158deg,
-      #E9C769 0%,
-      #D6AE45 16%,
-      #C29A2E 34%,
-      #AD8A22 50%,
-      #C29A2E 66%,
-      #D6AE45 84%,
-      #E9C769 100%);
+      #F3DA8C 0%,
+      #EACD6E 20%,
+      #E0BE55 40%,
+      #DAB548 50%,
+      #E0BE55 60%,
+      #EACD6E 80%,
+      #F3DA8C 100%);
 }
-/* a soft warm vignette — darkens the far edges toward a deep bronze (never
-   toward black/grey, which would read as dirt on the gold rather than
-   shade) so the eye is drawn back to center no matter where the envelope/
-   cards/form currently sit, the way a photographed invitation on a table
-   is naturally lit from above-center */
+/* a barely-there vignette now — was dark enough at the corners to read as
+   genuine shade/dirt on the gold rather than the intended "softly lit
+   from above" cue, especially stacked on top of the gradient's own edges.
+   Pulled way back: still nudges the eye toward center, without ever
+   letting the page's OWN corners look dim. */
 body::after{
   content:'';
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:radial-gradient(120% 85% at 50% 42%, transparent 60%, rgba(64,42,4,.4) 100%);
+  background:radial-gradient(130% 90% at 50% 40%, transparent 72%, rgba(120,88,20,.16) 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}

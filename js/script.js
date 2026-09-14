@@ -95,17 +95,24 @@
       if(ratio > 0.6 && !opened){
         opened = true;
         envelope.classList.add('is-open');
-        // The Shabbos/weekend invitation comes out first and is given time
-        // to fully arrive — slide, sheen sweep and its own content stagger
-        // all settle (~1.65s after it starts) — before the weekday
-        // invitation follows it out, so the two visibly happen one after
-        // the other rather than overlapping.
-        setTimeout(function(){ cardA.classList.add('is-out'); }, 650);
-        setTimeout(function(){ cardB.classList.add('is-out'); }, 2500);
-        setTimeout(function(){ cardsHint.classList.add('ready'); }, 4300);
+        // Each invitation is drawn out in two beats: '.is-rising' pulls it
+        // straight up out of the pocket and holds it square to the viewer,
+        // then '.is-out' lets it drift into its fanned resting place. The
+        // Shabbos/weekend card completes BOTH beats before the weekday one
+        // starts moving, so the two read as one-then-the-other rather than
+        // overlapping. Timings track the .95s transform transition on
+        // .invite-card — change one and the other has to follow.
+        setTimeout(function(){ cardA.classList.add('is-rising'); },  550);
+        setTimeout(function(){ cardA.classList.add('is-out');    }, 1600);
+        setTimeout(function(){ cardB.classList.add('is-rising'); }, 2600);
+        setTimeout(function(){ cardB.classList.add('is-out');    }, 3600);
+        // The envelope shell only dissolves once both cards are clear of
+        // it — that hand-off is timed in CSS (the 4.6s delays on .env-back
+        // / .env-front / .envelope's own glide), not here.
+        setTimeout(function(){ cardsHint.classList.add('ready'); }, 5200);
         // A quieter, later cue for a guest who isn't going to tap the
         // cards at all — they should still learn there is more below.
-        setTimeout(function(){ continueHint.classList.add('ready'); }, 6000);
+        setTimeout(function(){ continueHint.classList.add('ready'); }, 6600);
       }
       if(revealed && opened) io.disconnect();
     });

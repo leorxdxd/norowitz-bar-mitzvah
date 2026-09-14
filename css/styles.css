@@ -331,7 +331,9 @@ section{
   width:var(--env-w);
   aspect-ratio: 5 / 7;
   transform-style:preserve-3d;
-  transition:transform 1s cubic-bezier(.22,.61,.24,1) 1.2s;
+  /* held until both cards are out — gliding the envelope (and the pocket
+     with it) mid-reveal would drag a card that is still inside it */
+  transition:transform 1s cubic-bezier(.22,.61,.24,1) 4.6s;
 }
 /* The stage centres the ENVELOPE box, but the cards end up floating well
    above it. Once they're out and the shell has dissolved, glide the whole
@@ -345,7 +347,7 @@ section{
   transform:translateX(-50%) scaleX(1);
   filter:blur(2px);
   opacity:.45;
-  transition:opacity .7s ease .95s, transform 1s ease .3s;
+  transition:opacity .7s ease 4.6s, transform 1s ease 4.6s;
   z-index:0;
 }
 /* the envelope's own contact shadow hands off to .cards-position::after
@@ -368,7 +370,7 @@ section{
   border-radius:4px;
   box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
   z-index:1;
-  transition:opacity .7s ease .95s;
+  transition:opacity .7s ease 4.6s;
 }
 .env-back::before{
   content:'';
@@ -378,8 +380,32 @@ section{
   opacity:.6;
 }
 /* the empty envelope shell dissolves once its job is done, instead of
-   lingering behind the cards as a large blank box */
+   lingering behind the cards as a large blank box. It has to outlast BOTH
+   cards coming out — it used to fade at .95s, while card B was still
+   inside it, which is why the second card appeared out of thin air. */
 .envelope.is-open .env-back{ opacity:0; }
+
+/* The front pocket the cards are drawn out of. Sits above them (z-index 4)
+   so the part of a card still inside the envelope is genuinely hidden
+   rather than just faded — occlusion is the only thing that makes a card
+   read as emerging from somewhere. Brighter than .env-back because this is
+   the near face of the envelope, catching more light. */
+.env-front{
+  position:absolute; left:0; right:0; top:70%; bottom:0;
+  background:linear-gradient(160deg,
+    #7A6009 0%,
+    #513503 35%,
+    #331F01 65%,
+    #5A4304 100%);
+  border-top:1px solid var(--paper-edge);
+  border-radius:0 0 4px 4px;
+  /* thrown upward, onto the card, so the card looks tucked behind this
+     edge instead of merely overlapped by it */
+  box-shadow:0 -14px 22px -10px rgba(0,0,0,.6);
+  z-index:4;
+  transition:opacity .8s ease 4.6s;
+}
+.envelope.is-open .env-front{ opacity:0; }
 
 /* the flap folds down from the top edge; opening rotates it up & back */
 .env-flap{
@@ -399,9 +425,14 @@ section{
 }
 .envelope.is-open .env-flap{ transform:rotateX(-162deg); }
 
+/* 42% is the flap's own height, i.e. the point of the triangle — the seal
+   sits on that fold exactly as it did when it was nested inside the flap,
+   but as a sibling it escapes the flap's clip-path. z-index clears both
+   the flap (3) and the front pocket (4). */
 .seal-wrap{
-  position:absolute; left:50%; top:100%; width:46px; height:46px;
+  position:absolute; left:50%; top:42%; width:46px; height:46px;
   transform:translate(-50%,-52%);
+  z-index:5;
   transition:opacity .5s ease .1s, transform .5s ease .1s;
 }
 .envelope.is-open .seal-wrap{ opacity:0; transform:translate(-50%,-52%) scale(.7) rotate(-14deg); }
@@ -467,8 +498,20 @@ section{
   transform:translateX(-50%);
   transform-origin:center bottom;
   z-index:2;
+  /* A card waiting in the pocket is pushed down far enough that it hangs
+     well below the envelope; .env-front hides the middle of it but nothing
+     hid the part below the envelope's own bottom edge. This clips exactly
+     that, so only what has actually emerged is ever painted. The -5% keeps
+     the settled cards' drop shadows from being sliced off, and the whole
+     clip is dropped once both cards are out — before .cards-hint, which
+     lives below this box and would otherwise be clipped away entirely. */
+  clip-path:inset(-200% -200% -5% -200%);
+  transition:clip-path 0s linear 5s;
 }
-.envelope.is-open .cards-position{ animation:float 5.5s ease-in-out 3s infinite; }
+.envelope.is-open .cards-position{
+  clip-path:inset(-200%);
+  animation:float 5.5s ease-in-out 5.4s infinite;
+}
 @keyframes float{
   0%,100%{ transform:translateX(-50%) translateY(0) rotate(.35deg); }
   50%{ transform:translateX(-50%) translateY(-10px) rotate(-.35deg); }
@@ -482,7 +525,7 @@ section{
   background:radial-gradient(ellipse at center, var(--shadow) 0%, transparent 72%);
   filter:blur(6px);
   opacity:0;
-  transition:opacity .8s ease 1.5s;
+  transition:opacity .8s ease 5.1s;
   z-index:1;
   pointer-events:none;
 }
@@ -507,15 +550,32 @@ section{
   text-align:center;
   padding:6.2% 8%;
   cursor:pointer;
-  opacity:0;
-  transform:translate(0,6%) scale(.85) rotate(-4deg);
-  transition:transform 1s cubic-bezier(.22,.68,0,1.03), opacity .6s ease, box-shadow .4s ease;
+  /* fully opaque even while waiting: the card is hidden by the pocket in
+     front of it, not by being transparent. Fading a card in is what made
+     the old reveal look like it materialised rather than came out. */
+  opacity:1;
+  /* tucked down inside the pocket — deep enough that its top edge sits
+     below .env-front's top edge, so none of it shows until it moves */
+  transform:translate(0,78%) scale(.98) rotate(0deg);
+  transition:transform .95s cubic-bezier(.2,.78,.26,1), opacity .6s ease, box-shadow .4s ease;
   will-change:transform, opacity;
 }
-.invite-card.card-b{ transform:translate(0,7%) scale(.83) rotate(-4deg); }
-.invite-card.is-out{ opacity:1; }
+.invite-card.card-b{ transform:translate(0,78%) scale(.965) rotate(0deg); }
+
+/* Step 1 — the card is drawn straight up out of the pocket, square to the
+   viewer, and held there for a beat. Step 2 (.is-out below) then only fans
+   it sideways into its resting place. Splitting the move in two is what
+   reads as being pulled out of something; one continuous tween from inside
+   the pocket to the final angled position just looks like the card slid
+   diagonally. Both steps are transitions rather than keyframes so a later
+   tap can still re-transition the card to .is-front.
+   This lands at the SAME height the card rests at, deliberately: an
+   .is-rising that overshoots upward makes the card visibly sink back into
+   the envelope on the second beat, which reads as it being swallowed
+   again rather than settling. */
+.invite-card.is-rising{ transform:translate(0,-1%) scale(1.02) rotate(0deg); }
 .invite-card.card-a.is-out{ transform:translate(-9%,0) scale(1) rotate(-3deg); z-index:3; }
-.invite-card.card-b.is-out{ transform:translate(9%,3%) scale(1) rotate(4deg); z-index:2; }
+.invite-card.card-b.is-out{ transform:translate(9%,1%) scale(1) rotate(4deg); z-index:2; }
 /* whichever card was tapped last comes forward, dead centre */
 .invite-card.is-out.is-front{ transform:translate(0,-1%) scale(1.04) rotate(0deg); z-index:5; }
 .invite-card.is-front{
@@ -537,7 +597,7 @@ section{
   pointer-events:none;
   opacity:0;
 }
-.invite-card.is-out::before{ animation:sheen 1.3s ease-out .35s 1; }
+.invite-card.is-rising::before{ animation:sheen 1.3s ease-out .35s 1; }
 @keyframes sheen{
   0%{ background-position:130% 0; opacity:0; }
   15%{ opacity:.8; }
@@ -550,11 +610,11 @@ section{
    ride the card's own fade */
 .invite-card > *{ opacity:0; }
 .invite-card > *:nth-child(-n+6){ opacity:1; }
-.invite-card.is-out > *{
+.invite-card.is-rising > *{
   animation:rise-in .7s cubic-bezier(.22,.68,0,1.03) both;
   animation-delay:calc(.85s + var(--d,0) * .08s);
 }
-.invite-card.is-out > *:nth-child(-n+6){ animation:none; opacity:1; }
+.invite-card.is-rising > *:nth-child(-n+6){ animation:none; opacity:1; }
 
 /* engraved-invitation frame: a thin outer hairline plus a doubled gold
    line further in, echoing a printed foil-edged card */

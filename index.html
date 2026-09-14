@@ -109,9 +109,17 @@
               Tap a card to bring it forward
             </div>
           </div>
-          <div class="env-flap">
-            <div class="seal-wrap"><div class="wax-seal yn-mark">YN</div></div>
-          </div>
+          <!-- The envelope's front pocket. Until now nothing ever occluded
+               the cards, so they read as fading in on top of the envelope
+               rather than being drawn out of it; the cards now slide up
+               from behind this, which is what sells the whole reveal. -->
+          <div class="env-front" aria-hidden="true"></div>
+          <div class="env-flap"></div>
+          <!-- The seal sits OUTSIDE .env-flap on purpose: the flap is cut to
+               a triangle with clip-path, and a clip-path clips descendants
+               too, so a seal nested inside it got sliced down to a fan
+               wedge instead of a circle. -->
+          <div class="seal-wrap"><div class="wax-seal yn-mark">YN</div></div>
         </div>
       </div>
       <div class="continue-hint" id="continueHint">

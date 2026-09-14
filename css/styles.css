@@ -484,6 +484,14 @@ section{
   font-family:'Marcellus', serif;
   letter-spacing:-.06em;
 }
+/* .watermark already declares position:fixed (needed to pin it as a true
+   full-viewport background layer), but .yn-mark's position:relative has
+   the same specificity and sits later in this file, so it was silently
+   winning — .watermark rendered as a normal-flow block instead, adding
+   its own ~500px of real height at the very top of <body> and shoving
+   every section (hero included) down by that much. Two classes beats one,
+   so this wins regardless of source order — the fix that actually holds. */
+.watermark.yn-mark{ position:fixed; }
 .yn-mark::after{
   content:'';
   position:absolute; left:50%; top:50%;

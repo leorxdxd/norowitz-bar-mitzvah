@@ -19,6 +19,12 @@
   --gold-deep:#82611E;
   --gold-light:#F0DFA0;
   --brass-hi-rgb:183,152,16; /* bright foil-gradient corner (#B79810), sampled from the real cards */
+  --frame-gold:#E3C168;    /* brighter than --gold, used only for the card/
+                              envelope's own engraved hairlines and corner
+                              flourishes — these need to stay crisp even
+                              where they cross the gradient's dark valley,
+                              which --gold (tuned for the page's lighter
+                              backdrop) reads too dim to do */
   --line: rgba(198,152,60,.4);
   --shadow: rgba(0,0,0,.65);
   --glow: rgba(198,162,77,.22);
@@ -59,13 +65,17 @@ body::before{
   background:
     radial-gradient(88% 60% at 0% -6%, rgba(var(--brass-hi-rgb),.55) 0%, rgba(var(--brass-hi-rgb),0) 62%),
     radial-gradient(88% 60% at 100% 106%, rgba(var(--brass-hi-rgb),.45) 0%, rgba(var(--brass-hi-rgb),0) 62%),
+    /* deepened to genuinely dark at the valley (not just a lighter shade
+       of the same midtone) so the brighter cards actually lift off this
+       backdrop instead of blending into a page that reads at nearly the
+       same brightness as they do */
     linear-gradient(158deg,
       #5E4A09 0%,
-      #443204 16%,
-      #2F1E02 34%,
-      #241603 50%,
-      #2E1D02 66%,
-      #403004 84%,
+      #392A03 16%,
+      #1E1200 34%,
+      #130B00 50%,
+      #1E1200 66%,
+      #392A03 84%,
       #5B4708 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
@@ -356,16 +366,18 @@ section{
 
 .env-back{
   position:absolute; inset:0;
-  /* same foil as the cards, held a touch darker so the invitations read
-     as lighter stock sliding out of it */
+  /* same widened-contrast foil as the cards (see .invite-card), held a
+     touch darker overall so the invitations read as lighter stock sliding
+     out of it */
   background:linear-gradient(152deg,
-    #7E650B 0%,
-    #5F4A06 16%,
-    #3E2802 34%,
-    #2B1B01 52%,
-    #3A2602 68%,
-    #573F03 85%,
-    #7A6109 100%);
+    #B8901E 0%,
+    #7C5D0D 16%,
+    #402E04 32%,
+    #170D00 48%,
+    #0C0600 58%,
+    #1C1201 72%,
+    #2E2004 86%,
+    #40300A 100%);
   border:1px solid var(--paper-edge);
   border-radius:4px;
   box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
@@ -393,15 +405,18 @@ section{
 .env-front{
   position:absolute; left:0; right:0; top:70%; bottom:0;
   background:linear-gradient(160deg,
-    #7A6009 0%,
-    #513503 35%,
-    #331F01 65%,
-    #5A4304 100%);
+    #D6AF48 0%,
+    #97730F 30%,
+    #4A3606 58%,
+    #190E00 82%,
+    #2E2004 100%);
   border-top:1px solid var(--paper-edge);
   border-radius:0 0 4px 4px;
   /* thrown upward, onto the card, so the card looks tucked behind this
-     edge instead of merely overlapped by it */
-  box-shadow:0 -14px 22px -10px rgba(0,0,0,.6);
+     edge instead of merely overlapped by it, PLUS a crisp bright line
+     right on the fold — real paper catches a hard highlight exactly at a
+     crease, not a soft blur, which is what actually sells the fold */
+  box-shadow:0 -14px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,238,196,.5);
   z-index:4;
   transition:opacity .8s ease 4.6s;
 }
@@ -411,10 +426,13 @@ section{
 .env-flap{
   position:absolute; top:0; left:0; width:100%; height:42%;
   /* the flap catches the light rather than falling away from it, so its
-     sweep runs the opposite direction to the envelope body underneath */
+     sweep runs the opposite direction to the envelope body underneath —
+     bright along the top edge, dark down at the point, which also makes
+     the seal (sitting right on that point) pop against something dark
+     instead of a similarly-bright flap washing it out */
   background:
-    radial-gradient(160% 140% at 20% -10%, rgba(var(--brass-hi-rgb),.5) 0%, rgba(var(--brass-hi-rgb),0) 52%),
-    linear-gradient(200deg, #6A5307 0%, #432C02 60%, #2C1C01 130%);
+    radial-gradient(160% 140% at 20% -10%, rgba(255,238,190,.55) 0%, rgba(var(--brass-hi-rgb),0) 46%),
+    linear-gradient(200deg, #CFA83E 0%, #7C5D0D 38%, #1B1000 78%, #2E2004 130%);
   clip-path:polygon(0 0, 100% 0, 50% 100%);
   transform-origin:top center;
   transform:rotateX(0deg);
@@ -422,6 +440,10 @@ section{
   backface-visibility:hidden;
   z-index:3;
   box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
+  /* drop-shadow (not box-shadow) follows the clip-path's actual triangular
+     silhouette, so this reads as a hard highlight right along the folded
+     edge rather than a rectangle poking out past the point */
+  filter:drop-shadow(0 1px 0 rgba(255,238,196,.4));
 }
 .envelope.is-open .env-flap{ transform:rotateX(-162deg); }
 
@@ -534,16 +556,27 @@ section{
 .invite-card{
   position:absolute; inset:0;
   border-radius:3px;
-  /* the card stock IS the printed foil: these seven stops are the colours
-     read straight off the real invitation's diagonal, corner to corner */
-  background:linear-gradient(152deg,
-    #A2830E 0%,
-    #7B6008 15%,
-    #503403 33%,
-    #372301 50%,
-    #4A3103 67%,
-    #6E5304 84%,
-    #9A7B0B 100%);
+  /* v1 of this gradient sampled the real card's hue correctly but
+     compressed everything into a narrow 40-127 luminance band, which is
+     why it read as flat brown mud instead of foil. A diagonal sweep this
+     rich in real gold foil runs roughly 8-185: a genuine near-black
+     shadow, a genuine bright metallic corner, not two shades of the same
+     midtone. Widening the range is what actually reads as "foil" rather
+     than "brown paper" — the hue barely changed, the CONTRAST did. */
+  background:
+    /* a small, sharp specular glint at the corner the light hits — real
+       foil has a hard hotspot, not just an evenly bright zone */
+    linear-gradient(160deg, rgba(255,241,208,.4) 0%, rgba(255,241,208,0) 11%),
+    linear-gradient(152deg,
+      #E7C468 0%,
+      #C29A24 11%,
+      #8A6A0F 24%,
+      #4E3805 38%,
+      #1E1200 52%,
+      #0F0800 62%,
+      #241704 75%,
+      #3B2A08 88%,
+      #52400E 100%);
   border:1px solid var(--paper-edge);
   box-shadow:0 30px 60px -20px var(--shadow), 0 0 46px -14px var(--glow);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -618,8 +651,8 @@ section{
 
 /* engraved-invitation frame: a thin outer hairline plus a doubled gold
    line further in, echoing a printed foil-edged card */
-.card-frame-outer{ position:absolute; inset:5%; border:1px solid var(--gold); pointer-events:none; }
-.card-frame-inner{ position:absolute; inset:7.6%; border:3px double var(--gold); opacity:.85; pointer-events:none; }
+.card-frame-outer{ position:absolute; inset:5%; border:1px solid var(--frame-gold); pointer-events:none; }
+.card-frame-inner{ position:absolute; inset:7.6%; border:3px double var(--frame-gold); pointer-events:none; }
 .card-corner{ position:absolute; width:11%; aspect-ratio:1; pointer-events:none; }
 .card-corner svg{ width:100%; height:100%; display:block; }
 .card-corner.tl{ top:5.4%; left:5.4%; }
@@ -637,20 +670,29 @@ section{
              0 0 0 3px var(--ivory), 0 0 0 4px var(--gold-deep);
   margin-bottom:.55rem;
 }
-.invite-card .who{ font-size:clamp(1.25rem,4.6vw,1.85rem); color:var(--ink); text-shadow:0 1px 0 rgba(0,0,0,.5); }
+/* the wider-contrast gradient (see .invite-card) means text can land
+   anywhere from the bright corner to the near-black valley depending on
+   where it sits on the card — a flat text color that was tuned against
+   one midtone no longer holds up everywhere. A soft dark shadow on every
+   text node gives it a floor of legibility regardless of what part of the
+   sweep is behind it, the same insurance .who already had. */
+.invite-card .who{ font-size:clamp(1.25rem,4.6vw,1.85rem); color:var(--ink); text-shadow:0 1px 2px rgba(0,0,0,.55); }
 .invite-card .invite-eyebrow{
   font-family:'Jost', sans-serif; font-size:.66rem; letter-spacing:.22em;
   text-transform:uppercase; color:var(--ink-soft); margin-bottom:.5rem;
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
 }
-.invite-card .invite-line{ font-style:italic; color:var(--ink-soft); font-size:.94rem; margin-top:.3rem; }
+.invite-card .invite-line{ font-style:italic; color:var(--ink-soft); font-size:.94rem; margin-top:.3rem; text-shadow:0 1px 2px rgba(0,0,0,.55); }
 .invite-card .invite-hosts{
   margin-top:.3rem;
   font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-soft);
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
 }
 .invite-card .invite-rsvp-note{
   margin-top:.15rem;
   font-size:.68rem; font-style:italic; color:var(--ink-soft);
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
 }
 .invite-card .invite-rsvp-note a{ color:var(--gold); text-decoration:none; border-bottom:1px solid currentColor; }
 
@@ -659,13 +701,14 @@ section{
 .schedule-item .when{
   font-family:'Jost', sans-serif; font-size:.64rem; letter-spacing:.16em;
   text-transform:uppercase; color:var(--ink-soft);
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
 }
 .schedule-item .when::before{
   content:''; display:inline-block;
   width:5px; height:5px; margin-right:.55em;
   background:var(--gold); transform:rotate(45deg) translateY(-1px);
 }
-.schedule-item .what{ font-size:.98rem; margin-top:.15rem; }
+.schedule-item .what{ font-size:.98rem; margin-top:.15rem; text-shadow:0 1px 2px rgba(0,0,0,.5); }
 
 /* sits right under the pair (not a separate block far below the whole
    envelope) so it reads as clearly "about this" */

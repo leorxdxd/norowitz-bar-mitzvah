@@ -1,5 +1,5 @@
 :root{
-  color-scheme: dark;
+  color-scheme: light;
   /* Gold-foil invitation palette, sampled pixel-by-pixel off the real
      printed cards. The stock is NOT black: it is a diagonal foil sweep
      that runs bright brass at the top-left and bottom-right corners
@@ -10,7 +10,13 @@
   --foil-hi:#A2830E;       /* bright brass corner of the sweep */
   --foil-mid:#503403;      /* the shoulder between corner and valley */
   --foil-low:#372301;      /* deepest bronze in the valley — not black */
-  --ivory:#241603;         /* page ground, the foil valley one shade down */
+  --ivory:#C89B2E;         /* page ground — a real, rich gold now (was the
+                              dark foil valley); flat fallback used before
+                              body::before's gradient paints, and the
+                              ring-match colour for badges that sit ON the
+                              gold page (.rsvp-monogram). .wax-seal, which
+                              sits on the dark envelope instead, uses a
+                              literal dark colour rather than this var. */
   --paper:#1C1201;         /* dark ink used ON gold badges & buttons */
   --paper-edge:#8A6C12;    /* brass edge line on card & envelope stock */
   --ink:#E7D9A0;           /* primary text — real invitation's champagne-gold ink */
@@ -28,6 +34,16 @@
   --line: rgba(198,152,60,.4);
   --shadow: rgba(0,0,0,.65);
   --glow: rgba(198,162,77,.22);
+  /* The page ITSELF is now the gold surface (a real celebration-invitation
+     look — think a card laid on gold silk, not gold text on black). The
+     envelope/cards stay their own dark foil material (that's the real
+     client artwork, untouched) so everything below needs a text/accent
+     set for content sitting DIRECTLY on the gold page — --ink/--ink-soft
+     stay exactly as they were and still mean "text on a DARK surface"
+     (the coach-mark bubble, the confirm badge's paper text, etc.). */
+  --ink-dark:#2A1B03;       /* primary text on the gold page — deep espresso */
+  --ink-dark-soft:#6E4E12;  /* secondary/muted text on the gold page */
+  --line-on-gold: rgba(74,51,6,.35); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
   /* Envelope width drives the whole reveal's geometry. It is capped against
      viewport HEIGHT too (54svh->62svh), so the card never rises past the
      top of the screen mid-animation on short windows. The outer ceiling
@@ -45,7 +61,7 @@ html{ background:var(--ivory); }
 body{
   margin:0;
   background:var(--ivory);
-  color:var(--ink);
+  color:var(--ink-dark);
   font-family:'Cormorant Garamond', Georgia, serif;
   -webkit-font-smoothing:antialiased;
   /* NOT overflow-x:hidden here: on iOS Safari, ANY overflow on body/html
@@ -61,44 +77,46 @@ body{
 @keyframes page-fade-in{ from{ opacity:0; } to{ opacity:1; } }
 @media (prefers-reduced-motion: reduce){ body{ animation:none; } }
 
-/* The page ground is the invitation's own foil stock, not a flat black:
-   a diagonal brass sweep, bright at the top-left and bottom-right corners
-   and deepest through the middle, with a soft metallic bloom on each
-   bright corner. Painted as a FIXED layer so the whole scroll reads as one
-   continuous sheet of foil — a normal background would stretch the sweep
-   over several screens of document height and wash it out to mud. Dimmer
-   than the cards' own sweep on purpose, so the invitations still lift off
-   the page instead of dissolving into it. */
+/* The page itself is now a genuinely gold surface — a real celebration-
+   event look, like the invitation laid on gold silk, rather than gold
+   text/accents on a black page. It's a sweep, not a flat fill, so it
+   still reads as a lit material rather than a solid colour swatch: light
+   warm gold at the corners, a slightly deeper amber through the middle —
+   the deepest point (~#AD8A22) is still unmistakably gold, nothing here
+   ever approaches brown-black the way the old dark version did. Painted
+   as a FIXED layer so the whole scroll reads as one continuous sheet
+   rather than the sweep stretching thin over several screens of
+   document height. The envelope/cards keep their OWN dark foil gradient
+   unchanged (that's the real client artwork) — they now read as a dark
+   object resting on this gold ground, which is the whole effect. */
 body::before{
   content:'';
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(88% 60% at 0% -6%, rgba(var(--brass-hi-rgb),.55) 0%, rgba(var(--brass-hi-rgb),0) 62%),
-    radial-gradient(88% 60% at 100% 106%, rgba(var(--brass-hi-rgb),.45) 0%, rgba(var(--brass-hi-rgb),0) 62%),
-    /* deepened to genuinely dark at the valley (not just a lighter shade
-       of the same midtone) so the brighter cards actually lift off this
-       backdrop instead of blending into a page that reads at nearly the
-       same brightness as they do */
+    radial-gradient(85% 60% at 3% -4%, rgba(255,244,214,.5) 0%, rgba(255,244,214,0) 60%),
+    radial-gradient(85% 60% at 97% 104%, rgba(255,244,214,.4) 0%, rgba(255,244,214,0) 60%),
     linear-gradient(158deg,
-      #5E4A09 0%,
-      #392A03 16%,
-      #1E1200 34%,
-      #130B00 50%,
-      #1E1200 66%,
-      #392A03 84%,
-      #5B4708 100%);
+      #E9C769 0%,
+      #D6AE45 16%,
+      #C29A2E 34%,
+      #AD8A22 50%,
+      #C29A2E 66%,
+      #D6AE45 84%,
+      #E9C769 100%);
 }
-/* a cinematic vignette — darkens the far edges so the eye is drawn back to
-   center no matter where the envelope/cards/form currently sit, the way a
-   photographed invitation on a table is naturally lit from above-center */
+/* a soft warm vignette — darkens the far edges toward a deep bronze (never
+   toward black/grey, which would read as dirt on the gold rather than
+   shade) so the eye is drawn back to center no matter where the envelope/
+   cards/form currently sit, the way a photographed invitation on a table
+   is naturally lit from above-center */
 body::after{
   content:'';
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:radial-gradient(120% 85% at 50% 42%, transparent 55%, rgba(0,0,0,.55) 100%);
+  background:radial-gradient(120% 85% at 50% 42%, transparent 60%, rgba(64,42,4,.4) 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}
@@ -115,22 +133,26 @@ a, button{font-family:inherit;}
   z-index:0;
   font-family:'Marcellus', serif;
   font-size:clamp(9rem, 42vw, 26rem);
-  /* light champagne, not mid-gold: on the real invitation the YN reads as
-     a lighter sheen lifted off the stock, not a dark hole punched into it */
-  color:var(--gold-light);
-  opacity:.11;
+  /* now a soft IMPRESSION into the gold rather than a light sheen lifted
+     off it — the page ground flipped from dark to gold, so the mark
+     needs to read as slightly darker/deeper than its surroundings (like
+     a blind emboss) instead of lighter */
+  color:var(--gold-deep);
+  opacity:.16;
   letter-spacing:.02em;
   user-select:none;
 }
 
-/* faint grain so the black ground reads as stock, not a flat fill —
-   screen (not multiply) so the noise still shows up against near-black */
+/* faint grain so the gold ground reads as a lit material, not a flat
+   fill — overlay (not screen, which only ever brightens) works both ways
+   against a midtone gold, giving the noise some actual texture instead of
+   just a uniform light dusting */
 .grain{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.045;
-  mix-blend-mode:screen;
+  opacity:.05;
+  mix-blend-mode:overlay;
   background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
   background-size:180px 180px;
 }
@@ -141,11 +163,14 @@ a, button{font-family:inherit;}
 .progress-track{
   position:fixed; top:0; left:0; right:0; height:3px;
   z-index:55;
-  background:rgba(198,162,77,.14);
+  /* was a near-invisible gold-tinted line — fine against the old dark
+     page, but the exact same hue at low opacity all but disappears
+     against a gold page. Needs to read as a groove IN the gold now. */
+  background:rgba(64,42,4,.22);
 }
 .progress-fill{
   height:100%; width:0%;
-  background:linear-gradient(90deg, var(--gold), var(--gold-deep));
+  background:linear-gradient(90deg, var(--gold-deep), var(--ink-dark));
   transition:width .1s linear;
 }
 
@@ -156,7 +181,12 @@ a, button{font-family:inherit;}
 .rsvp-pill{
   position:fixed; top:20px; right:20px; z-index:50;
   background:radial-gradient(circle at 30% 25%, var(--gold-light), var(--gold) 60%, var(--gold-deep) 100%);
-  border:1px solid var(--gold-deep);
+  /* a plain --gold-deep border used to be enough separation against a
+     dark page; against the new gold page the badge and its background
+     are the same material, so the border/shadow are the ONLY thing that
+     still reads it as an object sitting on the surface rather than a
+     hole cut into it — darkened and thickened accordingly. */
+  border:1.5px solid var(--ink-dark);
   color:var(--paper);
   font-family:'Jost', sans-serif;
   font-size:.72rem;
@@ -165,7 +195,7 @@ a, button{font-family:inherit;}
   padding:.7em 1.3em;
   border-radius:999px;
   cursor:pointer;
-  box-shadow:0 6px 16px -8px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.16);
+  box-shadow:0 8px 18px -6px rgba(42,27,3,.55), inset 0 0 0 1px rgba(255,255,255,.16);
   transition:box-shadow .3s ease, transform .3s ease, filter .3s ease;
 }
 .rsvp-pill:hover{ filter:brightness(1.1); box-shadow:0 10px 22px -10px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.2); transform:translateY(-1px); }
@@ -208,28 +238,36 @@ section{
   font-size:.78rem;
   letter-spacing:.32em;
   text-transform:uppercase;
-  color:var(--ink-soft);
+  color:var(--ink-dark-soft);
   margin-bottom:1.4rem;
 }
 .hero h1{
   font-size:clamp(2.6rem, 8vw, 4.6rem);
   letter-spacing:.02em;
   text-transform:uppercase;
-  text-shadow:0 1px 0 rgba(0,0,0,.5);
+  /* a faint LIGHT emboss now, not a dark drop shadow — the text itself is
+     dark ink on a light gold page, so what sells depth here is a hint of
+     the page's own highlight catching the letterform's lower edge, the
+     way foil-stamping presses a shape rather than printing a flat shadow
+     under it */
+  text-shadow:0 1px 0 rgba(255,255,255,.4);
 }
 .hero h1{
-  /* a slow band of brighter light drifting across the name — the same
-     "foil catching the light" idea used on the cards, but on the ink
-     itself. Painted as a background clipped to the glyphs rather than an
-     animated color so it reads as light moving over one fixed material,
-     not the text changing color. (Used to also target .invite-card .who —
-     that element no longer exists now that the cards show the real
-     invitation artwork instead of recreated text.) */
-  color:var(--ink);
+  /* a slow band of brighter gold light drifting across the name — the
+     same "foil catching the light" idea used on the cards, but on the
+     ink itself. Painted as a background clipped to the glyphs rather than
+     an animated color so it reads as light moving over one fixed
+     material, not the text changing color. Base flipped from light
+     champagne to dark espresso now that the page itself is gold — the
+     shimmer band (gold-light) is still brighter than its surroundings
+     either way. (Used to also target .invite-card .who — that element no
+     longer exists now that the cards show the real invitation artwork
+     instead of recreated text.) */
+  color:var(--ink-dark);
   background-image:linear-gradient(100deg,
-    var(--ink) 42%, var(--ink) 46%,
+    var(--ink-dark) 42%, var(--ink-dark) 46%,
     var(--gold-light) 50%,
-    var(--ink) 54%, var(--ink) 100%);
+    var(--ink-dark) 54%, var(--ink-dark) 100%);
   background-size:280% 100%;
   background-position:160% 0;
   -webkit-background-clip:text; background-clip:text;
@@ -241,7 +279,7 @@ section{
   85%, 100%{ background-position:-60% 0; }
 }
 @media (prefers-reduced-motion: reduce){
-  .hero h1{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink); }
+  .hero h1{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink-dark); }
 }
 .hero .occasion-label{
   margin-top:1.1rem;
@@ -249,13 +287,16 @@ section{
   font-size:clamp(.85rem, 2vw, 1rem);
   letter-spacing:.4em;
   text-transform:uppercase;
-  color:var(--gold);
+  /* --gold sits well inside the page background's own brightness range
+     now, so a label set in it would nearly vanish — needs real ink to
+     read as a label rather than dissolve into the gold behind it */
+  color:var(--ink-dark);
 }
 .hero .date-line{
   margin-top:.9rem;
   font-style:italic;
   font-size:clamp(1.05rem,3vw,1.3rem);
-  color:var(--ink-soft);
+  color:var(--ink-dark-soft);
 }
 
 /* small line-dot-line ornament used wherever the invitation would
@@ -264,14 +305,17 @@ section{
   display:flex; align-items:center; justify-content:center;
   gap:.55rem; margin:1.8rem auto;
 }
+/* --gold read fine as a thin line against the old dark page; against the
+   new gold page it's within the background's own tonal range and all but
+   disappears, so these lines/dot switch to dark ink instead */
 .flourish .fl-line{ width:38px; height:1px; flex:none; }
-.flourish .fl-line.l{ background:linear-gradient(90deg, transparent, var(--gold)); }
-.flourish .fl-line.r{ background:linear-gradient(90deg, var(--gold), transparent); }
+.flourish .fl-line.l{ background:linear-gradient(90deg, transparent, var(--ink-dark-soft)); }
+.flourish .fl-line.r{ background:linear-gradient(90deg, var(--ink-dark-soft), transparent); }
 .flourish .fl-dot{
-  width:5px; height:5px; background:var(--gold); transform:rotate(45deg); flex:none;
-  /* a small warm glow, echoing the way a real gold-foil diamond mark
-     catches and holds a point of light rather than sitting flat */
-  box-shadow:0 0 7px 1px rgba(224,180,80,.55);
+  width:5px; height:5px; background:var(--ink-dark); transform:rotate(45deg); flex:none;
+  /* the glow stays gold-toned even though the dot itself is now dark ink —
+     a bit of warmth still catching light, just on a darker mark */
+  box-shadow:0 0 7px 1px rgba(224,180,80,.5);
 }
 .flourish.small{ margin:.55rem auto; }
 .flourish.small .fl-line{ width:22px; }
@@ -281,19 +325,24 @@ section{
   gap:.5rem; flex-wrap:wrap;
   margin-top:.4rem;
   padding-block:1.1rem;
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);
+  border-top:1px solid var(--line-on-gold);
+  border-bottom:1px solid var(--line-on-gold);
 }
 /* each unit as its own small display case rather than bare numbers
-   floating in a row — a hairline edge and a faint interior gradient give
+   floating in a row — a hairline edge and a dark interior gradient give
    the digits the same "set into the stock" feel as everything else on
-   the card, instead of looking like plain webpage text dropped in */
+   the card, instead of looking like plain webpage text dropped in. The
+   interior needed to go from a barely-there tint to genuinely dark once
+   the page itself turned gold — these read as small dark plaques resting
+   on the gold surface, independent of whatever's behind them, which is
+   exactly what keeps the gold numbers inside legible. */
 .cd-unit{
   display:flex; flex-direction:column; align-items:center; min-width:3.6rem;
   overflow:hidden; padding:.55rem .3rem .45rem;
-  border:1px solid var(--line);
+  border:1px solid rgba(255,238,196,.2);
   border-radius:7px;
-  background:linear-gradient(165deg, rgba(255,238,196,.07) 0%, rgba(0,0,0,.18) 100%);
+  background:linear-gradient(165deg, #4A3306 0%, #1C1201 100%);
+  box-shadow:0 4px 10px -4px rgba(42,27,3,.5);
 }
 .cd-num{
   display:inline-block;
@@ -318,10 +367,12 @@ section{
   font-size:.62rem;
   letter-spacing:.2em;
   text-transform:uppercase;
-  color:var(--ink-soft);
+  color:var(--ink-soft); /* stays as-is: this sits inside the now-dark .cd-unit chip, not on the gold page directly */
   margin-top:.2rem;
 }
-.cd-sep{ color:var(--gold); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
+/* unlike .cd-label, the separator dots sit directly on the gold page
+   between chips, so they need the dark-ink treatment, not --ink-soft */
+.cd-sep{ color:var(--ink-dark-soft); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
 
 /* a real <button> now, not just a decorative cue — reset the browser
    button chrome but keep every visual property it already had */
@@ -341,7 +392,7 @@ section{
   font-weight:500;
   letter-spacing:.16em;
   text-transform:uppercase;
-  color:var(--ink-soft);
+  color:var(--ink-dark-soft);
 }
 .scroll-cue-icon{
   width:48px; height:48px;
@@ -553,8 +604,11 @@ section{
   border:1px solid var(--gold-deep);
   display:flex; align-items:center; justify-content:center;
   font-size:1.05rem; color:var(--paper);
+  /* the ring uses a literal dark colour, NOT var(--ivory) — that token is
+     now the page's gold ground, but this seal sits on the dark envelope
+     flap, a different surface entirely; its ring has to match THAT. */
   box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.14),
-             0 0 0 3px var(--ivory), 0 0 0 4px var(--gold-deep);
+             0 0 0 3px #2C1C01, 0 0 0 4px var(--gold-deep);
 }
 
 /* ---------- YN monogram — the site's logo mark ---------- */
@@ -969,7 +1023,9 @@ body.zoom-locked{ overflow:hidden; }
 .continue-hint{
   display:flex; align-items:center; gap:.5rem;
   font-family:'Jost', sans-serif; font-size:.66rem; letter-spacing:.16em;
-  text-transform:uppercase; color:var(--ink-soft);
+  /* unlike .hint-bubble's text, this sits directly on the gold page —
+     no dark plaque behind it — so it needs the dark-ink treatment */
+  text-transform:uppercase; color:var(--ink-dark-soft);
   opacity:0; transform:translateY(6px);
   transition:opacity .7s ease, transform .7s ease, margin-top .3s ease;
 }
@@ -1007,11 +1063,14 @@ body.zoom-locked{ overflow:hidden; }
 .rsvp-monogram{
   width:64px; height:64px; border-radius:50%;
   background:radial-gradient(circle at 32% 30%, var(--gold-light), var(--gold) 55%, var(--gold-deep) 100%);
-  border:1px solid var(--gold-deep);
+  /* darkened/thickened for the same reason as .rsvp-pill: this badge and
+     the page behind it are now the same gold material, so the border is
+     the only thing left defining its edge */
+  border:1.5px solid var(--ink-dark);
   display:flex; align-items:center; justify-content:center;
   font-size:1.55rem; color:var(--paper);
-  box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.14),
-             0 0 0 3px var(--ivory), 0 0 0 4px var(--gold-deep);
+  box-shadow:0 6px 14px -6px rgba(42,27,3,.5), inset 0 0 0 3px rgba(255,255,255,.14),
+             0 0 0 3px var(--ivory), 0 0 0 4px var(--ink-dark);
   margin:0 auto 1rem;
 }
 .rsvp h2{
@@ -1019,10 +1078,10 @@ body.zoom-locked{ overflow:hidden; }
   margin-bottom:1.4rem;
 }
 .rsvp-email-note{
-  font-size:.85rem; color:var(--ink-soft); font-style:italic;
+  font-size:.85rem; color:var(--ink-dark-soft); font-style:italic;
   margin:0 0 2.2rem;
 }
-.rsvp-email-note a{ color:var(--gold); text-decoration:none; border-bottom:1px solid currentColor; }
+.rsvp-email-note a{ color:var(--ink-dark); text-decoration:none; border-bottom:1px solid currentColor; }
 
 form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .field{ position:relative; opacity:0; }
@@ -1032,39 +1091,49 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 }
 .field label{
   display:block; font-family:'Jost', sans-serif; font-size:.68rem;
-  letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
+  letter-spacing:.18em; text-transform:uppercase; color:var(--ink-dark-soft);
   margin-bottom:.5rem;
 }
 .field input, .field textarea{
-  width:100%; border:none; border-bottom:1px solid var(--line);
+  width:100%; border:none; border-bottom:1px solid var(--line-on-gold);
   background:transparent; font-family:'Cormorant Garamond', serif;
-  font-size:1.15rem; color:var(--ink); padding:.4rem 0;
+  font-size:1.15rem; color:var(--ink-dark); padding:.4rem 0;
 }
 .field input:focus, .field textarea:focus, .field input:focus-visible{
   outline:none;
 }
 .field textarea{ resize:vertical; min-height:3rem; }
-/* the gold underline grows out from center on focus, instead of an instant swap */
+.field input::placeholder, .field textarea::placeholder{ color:var(--ink-dark-soft); opacity:.55; }
+/* the underline grows out from center on focus, instead of an instant
+   swap — dark ink now, so it still shows clearly against the gold page
+   once it's fully open (--gold here would repeat the same low-contrast
+   problem every other gold-on-gold element on this page had) */
 .field::after{
   content:'';
   position:absolute; left:50%; right:50%; bottom:0;
-  height:1px; background:var(--gold);
+  height:1px; background:var(--ink-dark);
   transition:left .35s cubic-bezier(.4,0,.2,1), right .35s cubic-bezier(.4,0,.2,1);
   pointer-events:none;
 }
 .field:focus-within::after{ left:0; right:0; }
 
+/* Unchecked state flips to dark ink (a plain gold outline read as almost
+   invisible on the gold page); checked state flips the other way, to a
+   dark filled pill with gold text — the same "dark plaque on the gold
+   surface" language as the countdown chips and the coach-mark bubble, so
+   a selected state reads clearly as ITS OWN small object, not just a
+   tint change. */
 .attend-toggle{ display:flex; gap:.7rem; }
 .attend-toggle input{ position:absolute; opacity:0; width:0; height:0; }
 .attend-toggle label{
   flex:1; text-align:center;
   font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.08em;
-  padding:.75em .5em; border:1px solid var(--gold);
-  border-radius:999px; color:var(--gold); cursor:pointer;
+  padding:.75em .5em; border:1px solid var(--ink-dark);
+  border-radius:999px; color:var(--ink-dark); cursor:pointer;
   transition:background .25s ease, color .25s ease;
 }
-.attend-toggle input:checked + label{ background:var(--gold); color:var(--paper); }
-.attend-toggle input:focus-visible + label{ outline:2px solid var(--gold); outline-offset:2px; }
+.attend-toggle input:checked + label{ background:var(--ink-dark); color:var(--gold-light); border-color:var(--ink-dark); }
+.attend-toggle input:focus-visible + label{ outline:2px solid var(--ink-dark); outline-offset:2px; }
 
 /* grid-rows 1fr/0fr animates to the content's real height, no max-height
    guess to snap against or leave a gap under */
@@ -1082,14 +1151,15 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 }
 
 /* same struck-gold treatment as the RSVP pill/seals, for one consistent
-   "which things are actionable" material across the whole page */
+   "which things are actionable" material across the whole page — border
+   darkened/thickened like the other two for the same reason */
 .submit-btn{
   margin-top:.6rem;
   background:radial-gradient(circle at 30% 25%, var(--gold-light), var(--gold) 60%, var(--gold-deep) 100%);
   color:var(--paper);
-  border:1px solid var(--gold-deep);
+  border:1.5px solid var(--ink-dark);
   border-radius:999px;
-  box-shadow:0 6px 16px -8px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.16);
+  box-shadow:0 8px 18px -6px rgba(42,27,3,.55), inset 0 0 0 1px rgba(255,255,255,.16);
   padding:1em; font-family:'Jost', sans-serif; font-size:.78rem;
   font-weight:500;
   letter-spacing:.24em; text-transform:uppercase; cursor:pointer;
@@ -1100,15 +1170,18 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .submit-btn:hover{
   filter:brightness(1.1);
   transform:translateY(-2px);
-  box-shadow:0 14px 26px -12px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.2);
+  box-shadow:0 14px 26px -12px rgba(42,27,3,.6), inset 0 0 0 1px rgba(255,255,255,.2);
 }
 .submit-btn:active:not(:disabled){ transform:translateY(0) scale(.97); }
-.submit-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+.submit-btn:focus-visible{ outline:2px solid var(--ink-dark); outline-offset:3px; }
 .submit-btn:disabled{ opacity:.65; cursor:default; transform:none; box-shadow:none; }
 
 .form-error{
   font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.02em;
-  color:#E08A75; text-align:center; margin-top:-.4rem;
+  /* deepened from a coral (#E08A75, tuned to pop against a dark page) to
+     a burnt terracotta — the coral read as too pale/washed-out against
+     the new light gold page to still register as an error */
+  color:#8B3A1F; text-align:center; margin-top:-.4rem;
 }
 
 #rsvpForm{ transition:opacity .5s ease, transform .5s ease; }
@@ -1128,13 +1201,13 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .rsvp-confirm.shown .confirm-check path{ animation:draw-in .45s ease-out .65s forwards; }
 @keyframes draw-in{ to{ stroke-dashoffset:0; } }
 .confirm-title{ font-size:1.6rem; margin-top:.4rem; }
-.rsvp-confirm p.sub{ color:var(--ink-soft); font-style:italic; }
+.rsvp-confirm p.sub{ color:var(--ink-dark-soft); font-style:italic; }
 
 footer{
   position:relative; z-index:3;
   text-align:center; padding:2.5rem 20px 3rem;
   font-family:'Jost', sans-serif; font-size:.65rem; letter-spacing:.15em;
-  text-transform:uppercase; color:var(--ink-soft); opacity:.7;
+  text-transform:uppercase; color:var(--ink-dark-soft); opacity:.7;
 }
 
 @media (prefers-reduced-motion: reduce){

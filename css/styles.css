@@ -46,8 +46,11 @@
      that value's own luminance was nearly identical to the new sweep's
      darkest point, which would have made secondary text disappear
      exactly where the gold gets deep */
-  --ink-dark-soft:#3D2C08;  /* secondary/muted text on the gold page */
-  --line-on-gold: rgba(50,34,4,.45); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
+  /* darkened again along with round 4 of the page background — its
+     shadow point (~L56) is deep enough now that the previous #3D2C08
+     (~L45) was getting close enough to read poorly against it */
+  --ink-dark-soft:#2A1E06;  /* secondary/muted text on the gold page */
+  --line-on-gold: rgba(38,26,4,.5); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
   /* Envelope width drives the whole reveal's geometry. It is capped against
      viewport HEIGHT too (54svh->62svh), so the card never rises past the
      top of the screen mid-animation on short windows. The outer ceiling
@@ -98,36 +101,37 @@ body::before{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  /* Third pass on this background: flat-bright (previous version) wasn't
-     it either — asked for explicitly next: "dark gold with gradient gold
-     color". This is a real, richer sweep now — a deep antique gold at
-     the shadow point (#6E540E), not just a slightly-muted version of the
-     bright corner — while staying unmistakably GOLD throughout (nothing
-     here approaches the near-black/brown the original foil-valley
-     version used, which is the complaint that started this whole
-     back-and-forth in the first place). */
+  /* Fourth pass: round 3 only deepened the MIDDLE of the sweep — at wide
+     aspect ratios the visible area is dominated by the bright 0%/100%
+     corners, which were still a fairly light mustard (#D4AF37) and read
+     as washed-out/plain over the large areas they actually cover. This
+     round darkens the WHOLE sweep, corners included, not just the
+     shadow point — every stop dropped a full step, so even the
+     brightest corner is a deeper, richer gold than before. Corner
+     highlight blooms also pulled back (smaller radius, lower opacity) so
+     they read as a tight glint rather than washing out a big patch of
+     the corner back toward pale. */
   background:
-    radial-gradient(85% 60% at 3% -4%, rgba(255,238,190,.5) 0%, rgba(255,238,190,0) 62%),
-    radial-gradient(85% 60% at 97% 104%, rgba(255,238,190,.4) 0%, rgba(255,238,190,0) 62%),
+    radial-gradient(68% 48% at 3% -4%, rgba(255,235,185,.35) 0%, rgba(255,235,185,0) 55%),
+    radial-gradient(68% 48% at 97% 104%, rgba(255,235,185,.28) 0%, rgba(255,235,185,0) 55%),
     linear-gradient(158deg,
-      #D4AF37 0%,
-      #B8901F 18%,
-      #96751A 36%,
-      #6E540E 50%,
-      #96751A 64%,
-      #B8901F 82%,
-      #D4AF37 100%);
+      #9C7A18 0%,
+      #7E6212 20%,
+      #664E0E 40%,
+      #4A390A 50%,
+      #664E0E 60%,
+      #7E6212 80%,
+      #9C7A18 100%);
 }
-/* a moderate vignette — enough to add real depth/shadow at the far edges
-   (matching the "dark gold" request) without going as heavy as the very
-   first version, which combined with that version's own dark sweep to
-   read as genuinely dim in the corners rather than richly lit */
+/* bumped up again alongside the darker sweep — the two need to move
+   together, since the vignette's whole job is adding shadow ON TOP of
+   whatever the sweep itself already is */
 body::after{
   content:'';
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:radial-gradient(125% 88% at 50% 40%, transparent 66%, rgba(90,64,10,.3) 100%);
+  background:radial-gradient(122% 85% at 50% 40%, transparent 60%, rgba(80,56,8,.36) 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}

@@ -60,7 +60,6 @@
     var p = Math.min(Math.max(window.scrollY / (h*0.5), 0), 1);
     heroInner.style.opacity = String(1-p);
     heroInner.style.transform = 'translateY(' + (-p*36) + 'px)';
-    heroInner.style.filter = reduceMotion ? 'none' : 'blur(' + (p*6) + 'px)';
     heroInner.style.visibility = p >= 1 ? 'hidden' : 'visible';
   }
   window.addEventListener('scroll', onScroll, {passive:true});

@@ -42,8 +42,12 @@
      stay exactly as they were and still mean "text on a DARK surface"
      (the coach-mark bubble, the confirm badge's paper text, etc.). */
   --ink-dark:#2A1B03;       /* primary text on the gold page — deep espresso */
-  --ink-dark-soft:#6E4E12;  /* secondary/muted text on the gold page */
-  --line-on-gold: rgba(74,51,6,.35); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
+  /* darkened from #6E4E12 once the gold page itself got deeper/richer —
+     that value's own luminance was nearly identical to the new sweep's
+     darkest point, which would have made secondary text disappear
+     exactly where the gold gets deep */
+  --ink-dark-soft:#3D2C08;  /* secondary/muted text on the gold page */
+  --line-on-gold: rgba(50,34,4,.45); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
   /* Envelope width drives the whole reveal's geometry. It is capped against
      viewport HEIGHT too (54svh->62svh), so the card never rises past the
      top of the screen mid-animation on short windows. The outer ceiling
@@ -94,35 +98,36 @@ body::before{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  /* v1 of this swept from a light #E9C769 corner down to #AD8A22 at its
-     shadow point — still gold on paper, but combined with the vignette
-     below it read as genuinely dark in the corners/edges, not just a lit
-     sweep. Narrowed the whole range upward so even the "shadow" stop
-     stays a clearly bright gold — barely a shadow at all now, just enough
-     variation that it still reads as a lit material, not a flat swatch. */
+  /* Third pass on this background: flat-bright (previous version) wasn't
+     it either — asked for explicitly next: "dark gold with gradient gold
+     color". This is a real, richer sweep now — a deep antique gold at
+     the shadow point (#6E540E), not just a slightly-muted version of the
+     bright corner — while staying unmistakably GOLD throughout (nothing
+     here approaches the near-black/brown the original foil-valley
+     version used, which is the complaint that started this whole
+     back-and-forth in the first place). */
   background:
-    radial-gradient(85% 60% at 3% -4%, rgba(255,248,224,.55) 0%, rgba(255,248,224,0) 62%),
-    radial-gradient(85% 60% at 97% 104%, rgba(255,248,224,.45) 0%, rgba(255,248,224,0) 62%),
+    radial-gradient(85% 60% at 3% -4%, rgba(255,238,190,.5) 0%, rgba(255,238,190,0) 62%),
+    radial-gradient(85% 60% at 97% 104%, rgba(255,238,190,.4) 0%, rgba(255,238,190,0) 62%),
     linear-gradient(158deg,
-      #F3DA8C 0%,
-      #EACD6E 20%,
-      #E0BE55 40%,
-      #DAB548 50%,
-      #E0BE55 60%,
-      #EACD6E 80%,
-      #F3DA8C 100%);
+      #D4AF37 0%,
+      #B8901F 18%,
+      #96751A 36%,
+      #6E540E 50%,
+      #96751A 64%,
+      #B8901F 82%,
+      #D4AF37 100%);
 }
-/* a barely-there vignette now — was dark enough at the corners to read as
-   genuine shade/dirt on the gold rather than the intended "softly lit
-   from above" cue, especially stacked on top of the gradient's own edges.
-   Pulled way back: still nudges the eye toward center, without ever
-   letting the page's OWN corners look dim. */
+/* a moderate vignette — enough to add real depth/shadow at the far edges
+   (matching the "dark gold" request) without going as heavy as the very
+   first version, which combined with that version's own dark sweep to
+   read as genuinely dim in the corners rather than richly lit */
 body::after{
   content:'';
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:radial-gradient(130% 90% at 50% 40%, transparent 72%, rgba(120,88,20,.16) 100%);
+  background:radial-gradient(125% 88% at 50% 40%, transparent 66%, rgba(90,64,10,.3) 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}

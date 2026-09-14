@@ -121,10 +121,13 @@
   }, {threshold:[0,0.25,0.6,1], rootMargin:'-8% 0px -8% 0px'});
   io.observe(envelopeWrap);
 
-  // ---------- two invitation cards: tap either to bring it forward ----------
+  // ---------- two invitation cards: tap either to bring it forward, and
+  // to open it full-screen ----------
   // Both cards fan out of the envelope on their own timers (above); after
-  // that, a guest can tap/click or Enter/Space either one to swap which
-  // sits on top and dead-centre, like shuffling two physical cards.
+  // that, a guest can tap/click or Enter/Space either one both to bring it
+  // to the front (like shuffling two physical cards) AND to open it large
+  // enough to actually read — the real artwork's printed text (bilingual
+  // on the Shabbos card) is genuinely small at the card's on-page size.
   var cardA = document.getElementById('cardA');
   var cardB = document.getElementById('cardB');
   var cards = [cardA, cardB];
@@ -133,12 +136,48 @@
   function bringToFront(card){
     cards.forEach(function(c){ c.classList.toggle('is-front', c === card); });
   }
+
+  var zoomOverlay = document.getElementById('cardZoomOverlay');
+  var zoomImg = document.getElementById('cardZoomImg');
+  var zoomClose = document.getElementById('cardZoomClose');
+  var lastFocusedCard = null;
+  function openZoom(card){
+    var art = card.querySelector('.card-art');
+    zoomImg.src = art.src;
+    zoomImg.alt = art.alt;
+    lastFocusedCard = card;
+    zoomOverlay.classList.add('is-open');
+    zoomOverlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('zoom-locked'); // stops background scroll while open
+    zoomClose.focus();
+  }
+  function closeZoom(){
+    zoomOverlay.classList.remove('is-open');
+    zoomOverlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('zoom-locked');
+    if(lastFocusedCard) lastFocusedCard.focus();
+  }
+  zoomClose.addEventListener('click', closeZoom);
+  // tapping the dark backdrop closes it too, but not tapping the image
+  // itself — a guest zoomed in to read is very likely to tap the card
+  // again while reading, which shouldn't dismiss it
+  zoomOverlay.addEventListener('click', function(e){
+    if(e.target === zoomOverlay) closeZoom();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && zoomOverlay.classList.contains('is-open')) closeZoom();
+  });
+
   cards.forEach(function(card){
-    card.addEventListener('click', function(){ bringToFront(card); });
+    card.addEventListener('click', function(){
+      bringToFront(card);
+      openZoom(card);
+    });
     card.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
         bringToFront(card);
+        openZoom(card);
       }
     });
   });

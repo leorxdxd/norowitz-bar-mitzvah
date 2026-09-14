@@ -65,15 +65,23 @@
                  would just double up. The alt text carries the full content
                  for screen readers, since none of it exists as real text
                  in the DOM anymore. -->
-            <div class="invite-card card-a" id="cardA" role="button" tabindex="0" aria-label="Shabbos and weekend celebration invitation — tap to bring forward">
+            <div class="invite-card card-a" id="cardA" role="button" tabindex="0" aria-label="Shabbos and weekend celebration invitation — tap to view up close">
               <img class="card-art" src="assets/cards/shabbos-card.png" alt="With gratitude to Hashem, we are honoured to invite you to join us for the Bar Mitzvah of our dear son, Yehoshua Norowitz. Shabbos Kodesh, Parshas Vayeitzei, the 21st of November. Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York. Shacharis at 8:30 AM, Kiddush following davening. Akiva &amp; Tamar Norowitz.">
+              <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
-            <div class="invite-card card-b" id="cardB" role="button" tabindex="0" aria-label="Weekday celebration invitation — tap to bring forward">
+            <div class="invite-card card-b" id="cardB" role="button" tabindex="0" aria-label="Weekday celebration invitation — tap to view up close">
               <img class="card-art" src="assets/cards/weekday-card.png" alt="With so much love and pride, we invite you to join us in celebrating our dear son, Yehoshua Norowitz, on the occasion of his Bar Mitzvah. Wednesday, November 18, 2026, 7:00 PM. Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York. Akiva &amp; Tamar Norowitz. To RSVP, email rsvp@ynbarmitzvah2026.com.">
+              <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
+            <!-- App-onboarding-style coach mark: a speech-bubble callout with
+                 a pointer tail, not a plain line of text, since this is
+                 pointing the guest at a specific new gesture (tap-to-zoom)
+                 rather than just labelling something already obvious. -->
             <div class="cards-hint" id="cardsHint">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5"/><path d="M6 21v-4h4"/></svg>
-              Tap a card to bring it forward
+              <span class="hint-bubble">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6.5"/><path d="M20 20l-4.5-4.5"/></svg>
+                Tap a card to view it up close
+              </span>
             </div>
           </div>
           <!-- The envelope's front pocket. Until now nothing ever occluded
@@ -155,6 +163,17 @@
   </section>
 
 </main>
+
+<!-- Full-screen zoom, opened by tapping either invitation card — the real
+     artwork carries real, fairly small printed text (bilingual on the
+     Shabbos card), so this isn't decoration on top of an already-legible
+     card, it's how a guest actually reads the address/time on a phone. -->
+<div class="card-zoom-overlay" id="cardZoomOverlay" aria-hidden="true">
+  <button class="card-zoom-close" id="cardZoomClose" type="button" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <img class="card-zoom-img" id="cardZoomImg" src="" alt="">
+</div>
 
 <footer>Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 2026</footer>
 

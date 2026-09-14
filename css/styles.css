@@ -211,12 +211,14 @@ section{
   text-transform:uppercase;
   text-shadow:0 1px 0 rgba(0,0,0,.5);
 }
-.hero h1, .invite-card .who{
+.hero h1{
   /* a slow band of brighter light drifting across the name — the same
      "foil catching the light" idea used on the cards, but on the ink
      itself. Painted as a background clipped to the glyphs rather than an
      animated color so it reads as light moving over one fixed material,
-     not the text changing color. */
+     not the text changing color. (Used to also target .invite-card .who —
+     that element no longer exists now that the cards show the real
+     invitation artwork instead of recreated text.) */
   color:var(--ink);
   background-image:linear-gradient(100deg,
     var(--ink) 42%, var(--ink) 46%,
@@ -233,7 +235,7 @@ section{
   85%, 100%{ background-position:-60% 0; }
 }
 @media (prefers-reduced-motion: reduce){
-  .hero h1, .invite-card .who{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink); }
+  .hero h1{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink); }
 }
 .hero .occasion-label{
   margin-top:1.1rem;
@@ -576,10 +578,11 @@ section{
 .cards-position{
   position:absolute;
   left:50%; bottom:5%;
-  /* a touch taller than before (was 5/7.2) — the real invitations' actual
-     copy (full schedule + hosts + an RSVP line) needs more room than the
-     placeholder text this card size was originally tuned for. */
-  width:86%; aspect-ratio:5/8;
+  /* matches the real weekday card's own shape (576x960 = 0.6) almost
+     exactly — that card fills this box edge to edge, and it's also the
+     TALLER of the two real cards, so it sets the height the shorter
+     landscape Shabbos card gets centred inside (see .invite-card below). */
+  width:86%; aspect-ratio:576/960;
   /* left:50% anchors the BOX's left edge to center — without this
      translateX(-50%) the whole 86%-wide box (and both cards inside it)
      sits shifted a half-width to the right of center instead of centred,
@@ -621,7 +624,17 @@ section{
 .envelope.is-open .cards-position::after{ opacity:.6; }
 
 .invite-card{
-  position:absolute; inset:0;
+  /* inset:0 + margin:auto (rather than stretching to fill, as it used to)
+     lets each card keep ITS OWN real aspect-ratio (set per side below)
+     while still centering inside the shared box above — needed because
+     the two real cards are genuinely different shapes: forcing the
+     landscape Shabbos card into the same tall box as the portrait
+     Weekday one made it render as a thin strip with huge empty margins
+     top and bottom. width:100% + auto height means only the SHORTER
+     (landscape) card ever has margin space to center into; the taller
+     one already fills the box edge to edge. */
+  position:absolute; inset:0; margin:auto;
+  width:100%; height:auto;
   border-radius:3px;
   /* v1 of this gradient sampled the real card's hue correctly but
      compressed everything into a narrow 40-127 luminance band, which is
@@ -648,7 +661,10 @@ section{
   box-shadow:0 30px 60px -20px var(--shadow), 0 0 46px -14px var(--glow);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center;
-  padding:6.2% 8%;
+  /* small and uniform now — this used to be sized for the recreated
+     text's own margins (6.2%/8%); the real artwork just needs a sliver of
+     this box's own foil-gradient "mat" showing around it */
+  padding:3%;
   cursor:pointer;
   /* fully opaque even while waiting: the card is hidden by the pocket in
      front of it, not by being transparent. Fading a card in is what made
@@ -660,7 +676,18 @@ section{
   transition:transform .95s cubic-bezier(.2,.78,.26,1), opacity .6s ease, box-shadow .4s ease;
   will-change:transform, opacity;
 }
-.invite-card.card-b{ transform:translate(0,78%) scale(.965) rotate(0deg); }
+/* the real cards' own shapes — Shabbos card is landscape, Weekday is
+   portrait and matches .cards-position closely already (see above).
+   Because it's landscape, card-a's own rendered height is barely 40% of
+   .cards-position's height (vs. card-b's ~100%) — the base rule's
+   translate(0,78%) tuck is 78% of the CARD'S OWN height, so the same
+   percentage moves a much shorter card a much smaller distance in real
+   pixels, nowhere near enough to clear .env-front's line (measured:
+   pokes out ~90px at every viewport otherwise). Retuned empirically
+   against that measurement rather than derived by hand, since padding
+   and the shared box's exact proportions both feed into the real number. */
+.invite-card.card-a{ aspect-ratio:1488/996; transform:translate(0,145%) scale(.98) rotate(0deg); }
+.invite-card.card-b{ aspect-ratio:576/960; transform:translate(0,78%) scale(.965) rotate(0deg); }
 
 /* Step 1 — the card is drawn straight up out of the pocket, square to the
    viewer, and held there for a beat. Step 2 (.is-out below) then only fans
@@ -729,77 +756,35 @@ section{
   .invite-card.is-out.is-front:hover{ transform:translate(0,-9px) scale(1.055) rotate(0deg); }
 }
 
-/* content reveals piece by piece once its card is out, relative to that
-   card's own .is-out — the frame/corner elements (first 6 children) just
-   ride the card's own fade */
+/* The real artwork now IS the card's only child (see index.html) — the
+   old nth-child(-n+6) split existed to keep 6 static frame/corner
+   elements from fading like the text content that used to follow them.
+   Those elements are gone, so this is just a plain single-child reveal:
+   fade + rise in once the card is drawn out of the pocket. */
 .invite-card > *{ opacity:0; }
-.invite-card > *:nth-child(-n+6){ opacity:1; }
 .invite-card.is-rising > *{
-  animation:rise-in .7s cubic-bezier(.22,.68,0,1.03) both;
-  animation-delay:calc(.85s + var(--d,0) * .08s);
+  animation:rise-in .7s cubic-bezier(.22,.68,0,1.03) .85s both;
 }
-.invite-card.is-rising > *:nth-child(-n+6){ animation:none; opacity:1; }
 
-/* engraved-invitation frame: a thin outer hairline plus a doubled gold
-   line further in, echoing a printed foil-edged card */
-.card-frame-outer{ position:absolute; inset:5%; border:1px solid var(--frame-gold); pointer-events:none; }
-.card-frame-inner{ position:absolute; inset:7.6%; border:3px double var(--frame-gold); pointer-events:none; }
-.card-corner{ position:absolute; width:11%; aspect-ratio:1; pointer-events:none; }
-.card-corner svg{ width:100%; height:100%; display:block; }
-.card-corner.tl{ top:5.4%; left:5.4%; }
-.card-corner.tr{ top:5.4%; right:5.4%; transform:scaleX(-1); }
-.card-corner.bl{ bottom:5.4%; left:5.4%; transform:scaleY(-1); }
-.card-corner.br{ bottom:5.4%; right:5.4%; transform:scale(-1,-1); }
+.card-art{
+  width:100%; height:100%;
+  /* "contain", never "cover" — the two real cards are different shapes
+     (one landscape, one portrait); cover would crop the client's actual
+     artwork to fit a box it was never designed for. Contain shows the
+     whole card and lets the existing foil-gradient .invite-card
+     background act as a mat around it wherever the shapes don't match. */
+  object-fit:contain;
+  border-radius:2px;
+  pointer-events:none; /* clicks still hit .invite-card's own button role */
+  filter:drop-shadow(0 10px 22px rgba(0,0,0,.45));
+}
 
-.seal{
-  width:44px; height:44px; border-radius:50%;
-  background:radial-gradient(circle at 32% 30%, var(--gold-light), var(--gold) 55%, var(--gold-deep) 100%);
-  border:1px solid var(--gold-deep);
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.1rem; color:var(--paper);
-  box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.14),
-             0 0 0 3px var(--ivory), 0 0 0 4px var(--gold-deep);
-  margin-bottom:.55rem;
-}
-/* the wider-contrast gradient (see .invite-card) means text can land
-   anywhere from the bright corner to the near-black valley depending on
-   where it sits on the card — a flat text color that was tuned against
-   one midtone no longer holds up everywhere. A soft dark shadow on every
-   text node gives it a floor of legibility regardless of what part of the
-   sweep is behind it, the same insurance .who already had. */
-.invite-card .who{ font-size:clamp(1.25rem,4.6vw,1.85rem); color:var(--ink); text-shadow:0 1px 2px rgba(0,0,0,.55); }
-.invite-card .invite-eyebrow{
-  font-family:'Jost', sans-serif; font-size:.66rem; letter-spacing:.22em;
-  text-transform:uppercase; color:var(--ink-soft); margin-bottom:.5rem;
-  text-shadow:0 1px 2px rgba(0,0,0,.55);
-}
-.invite-card .invite-line{ font-style:italic; color:var(--ink-soft); font-size:.94rem; margin-top:.3rem; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-.invite-card .invite-hosts{
-  margin-top:.3rem;
-  font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--ink-soft);
-  text-shadow:0 1px 2px rgba(0,0,0,.55);
-}
-.invite-card .invite-rsvp-note{
-  margin-top:.15rem;
-  font-size:.68rem; font-style:italic; color:var(--ink-soft);
-  text-shadow:0 1px 2px rgba(0,0,0,.55);
-}
-.invite-card .invite-rsvp-note a{ color:var(--gold); text-decoration:none; border-bottom:1px solid currentColor; }
-
-.schedule-item{ margin-bottom:.4rem; }
-.schedule-item:last-child{ margin-bottom:0; }
-.schedule-item .when{
-  font-family:'Jost', sans-serif; font-size:.64rem; letter-spacing:.16em;
-  text-transform:uppercase; color:var(--ink-soft);
-  text-shadow:0 1px 2px rgba(0,0,0,.55);
-}
-.schedule-item .when::before{
-  content:''; display:inline-block;
-  width:5px; height:5px; margin-right:.55em;
-  background:var(--gold); transform:rotate(45deg) translateY(-1px);
-}
-.schedule-item .what{ font-size:.98rem; margin-top:.15rem; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+/* .seal, .invite-eyebrow, .who, .invite-line, .invite-hosts,
+   .invite-rsvp-note, .schedule-item and their small-screen overrides
+   below were the recreated-text build of the card face — removed along
+   with the matching HTML once the cards switched to the real invitation
+   artwork (see .card-art above and index.html). The same coin-badge
+   treatment .seal used still lives on, under .wax-seal/.rsvp-monogram. */
 
 /* sits right under the pair (not a separate block far below the whole
    envelope) so it reads as clearly "about this" */
@@ -1002,17 +987,8 @@ footer{
 
 @media (max-width:420px){
   .rsvp-pill{ top:14px; right:14px; padding:.6em 1em; font-size:.66rem; }
-  /* the narrowest common phones (iPhone SE etc.) shrink --env-w enough
-     that card-a's longer content (four text blocks vs card-b's three)
-     can still touch the frame even after the general spacing pass above —
-     a further, small-screen-only tightening rather than shrinking the
-     already-verified-comfortable fit everywhere else. */
-  .card-frame-inner{ inset:6.4%; }
-  .invite-card{ padding:6.2% 7%; }
-  .invite-card .who{ font-size:clamp(1.05rem,4.2vw,1.5rem); }
-  .invite-card .invite-eyebrow{ font-size:.6rem; line-height:1.3; }
-  .schedule-item .what{ font-size:.88rem; line-height:1.2; }
-  .schedule-item{ margin-bottom:.3rem; }
-  .seal{ width:38px; height:38px; margin-bottom:.4rem; font-size:1rem; }
-  .invite-card .invite-hosts{ margin-top:.15rem; }
+  /* the rest of this block was small-screen tightening for the recreated
+     TEXT card content (frame inset, font sizes, schedule spacing) — moot
+     now that the card face is a single real image scaled by object-fit,
+     which already handles every screen size without per-breakpoint rules. */
 }

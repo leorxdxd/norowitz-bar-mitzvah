@@ -29,9 +29,15 @@
   --shadow: rgba(0,0,0,.65);
   --glow: rgba(198,162,77,.22);
   /* Envelope width drives the whole reveal's geometry. It is capped against
-     viewport HEIGHT too, so the card never rises past the top of the screen
-     mid-animation on short windows. */
-  --env-w: clamp(260px, min(84vw, 54svh), 460px);
+     viewport HEIGHT too (54svh->62svh), so the card never rises past the
+     top of the screen mid-animation on short windows. The outer ceiling
+     was 460px — on any normal desktop monitor min(vw,svh) comfortably
+     clears that, so it was silently flattening the envelope down to a
+     small object adrift in a lot of empty page on wide screens. Raised to
+     680px: mobile is untouched (there, vw/svh are already the smaller
+     term and never got near 460 to begin with), only wide/tall viewports
+     get to actually use the room they have. */
+  --env-w: clamp(260px, min(86vw, 62svh), 680px);
 }
 
 *{box-sizing:border-box;}

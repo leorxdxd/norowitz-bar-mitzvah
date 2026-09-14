@@ -1,15 +1,20 @@
 :root{
   color-scheme: dark;
-  /* gold-on-black invitation palette — retuned against the real printed
-     invitation artwork (the Shabbos/Weekend + Weekday cards): sampled
-     directly from the artwork, the ink/frame gold reads #D6CA89 and the
-     foil-gradient card stock runs from a bright brass corner (~#B79810)
-     down to near-black (~#241500). */
-  --ivory:#0B0806;         /* page ground, deepest black */
-  --paper:#18110A;         /* card / envelope stock, a shade lighter */
-  --paper-edge:#4A3A1E;    /* bronze edge line on card & envelope stock */
+  /* Gold-foil invitation palette, sampled pixel-by-pixel off the real
+     printed cards. The stock is NOT black: it is a diagonal foil sweep
+     that runs bright brass at the top-left and bottom-right corners
+     (~#A2830E) and falls to a deep warm bronze through the middle
+     (~#372301) — never lower than that. The ink/frame gold is #D6CA89.
+     The --foil-* trio below are those measured stops; everything that
+     should read as invitation stock is built from them. */
+  --foil-hi:#A2830E;       /* bright brass corner of the sweep */
+  --foil-mid:#503403;      /* the shoulder between corner and valley */
+  --foil-low:#372301;      /* deepest bronze in the valley — not black */
+  --ivory:#241603;         /* page ground, the foil valley one shade down */
+  --paper:#1C1201;         /* dark ink used ON gold badges & buttons */
+  --paper-edge:#8A6C12;    /* brass edge line on card & envelope stock */
   --ink:#E7D9A0;           /* primary text — real invitation's champagne-gold ink */
-  --ink-soft:#B9A275;      /* secondary text, muted tan-gold */
+  --ink-soft:#C6B083;      /* secondary text, muted tan-gold */
   --gold:#C0982E;          /* accent gold — lines, labels, icons */
   --gold-deep:#82611E;
   --gold-light:#F0DFA0;
@@ -37,6 +42,32 @@ body{
      horizontally (the giant watermark letters) is clipped on itself
      instead, below. */
 }
+
+/* The page ground is the invitation's own foil stock, not a flat black:
+   a diagonal brass sweep, bright at the top-left and bottom-right corners
+   and deepest through the middle, with a soft metallic bloom on each
+   bright corner. Painted as a FIXED layer so the whole scroll reads as one
+   continuous sheet of foil — a normal background would stretch the sweep
+   over several screens of document height and wash it out to mud. Dimmer
+   than the cards' own sweep on purpose, so the invitations still lift off
+   the page instead of dissolving into it. */
+body::before{
+  content:'';
+  position:fixed; inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(88% 60% at 0% -6%, rgba(var(--brass-hi-rgb),.55) 0%, rgba(var(--brass-hi-rgb),0) 62%),
+    radial-gradient(88% 60% at 100% 106%, rgba(var(--brass-hi-rgb),.45) 0%, rgba(var(--brass-hi-rgb),0) 62%),
+    linear-gradient(158deg,
+      #5E4A09 0%,
+      #443204 16%,
+      #2F1E02 34%,
+      #241603 50%,
+      #2E1D02 66%,
+      #403004 84%,
+      #5B4708 100%);
+}
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}
 ::selection{background:var(--gold-light); color:var(--paper);}
@@ -52,8 +83,10 @@ a, button{font-family:inherit;}
   z-index:0;
   font-family:'Marcellus', serif;
   font-size:clamp(9rem, 42vw, 26rem);
-  color:var(--gold);
-  opacity:.07;
+  /* light champagne, not mid-gold: on the real invitation the YN reads as
+     a lighter sheen lifted off the stock, not a dark hole punched into it */
+  color:var(--gold-light);
+  opacity:.11;
   letter-spacing:.02em;
   user-select:none;
 }
@@ -321,9 +354,16 @@ section{
 
 .env-back{
   position:absolute; inset:0;
-  background:
-    radial-gradient(120% 100% at 14% 8%, rgba(var(--brass-hi-rgb),.5) 0%, rgba(var(--brass-hi-rgb),0) 46%),
-    linear-gradient(155deg, var(--paper) 0%, var(--ivory) 100%);
+  /* same foil as the cards, held a touch darker so the invitations read
+     as lighter stock sliding out of it */
+  background:linear-gradient(152deg,
+    #7E650B 0%,
+    #5F4A06 16%,
+    #3E2802 34%,
+    #2B1B01 52%,
+    #3A2602 68%,
+    #573F03 85%,
+    #7A6109 100%);
   border:1px solid var(--paper-edge);
   border-radius:4px;
   box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
@@ -344,9 +384,11 @@ section{
 /* the flap folds down from the top edge; opening rotates it up & back */
 .env-flap{
   position:absolute; top:0; left:0; width:100%; height:42%;
+  /* the flap catches the light rather than falling away from it, so its
+     sweep runs the opposite direction to the envelope body underneath */
   background:
-    radial-gradient(160% 140% at 20% -10%, rgba(var(--brass-hi-rgb),.45) 0%, rgba(var(--brass-hi-rgb),0) 50%),
-    linear-gradient(200deg, var(--paper) 0%, var(--paper-edge) 130%);
+    radial-gradient(160% 140% at 20% -10%, rgba(var(--brass-hi-rgb),.5) 0%, rgba(var(--brass-hi-rgb),0) 52%),
+    linear-gradient(200deg, #6A5307 0%, #432C02 60%, #2C1C01 130%);
   clip-path:polygon(0 0, 100% 0, 50% 100%);
   transform-origin:top center;
   transform:rotateX(0deg);
@@ -449,9 +491,16 @@ section{
 .invite-card{
   position:absolute; inset:0;
   border-radius:3px;
-  background:
-    radial-gradient(120% 100% at 12% 8%, rgba(var(--brass-hi-rgb),.5) 0%, rgba(var(--brass-hi-rgb),0) 45%),
-    linear-gradient(155deg, var(--paper) 0%, var(--ivory) 100%);
+  /* the card stock IS the printed foil: these seven stops are the colours
+     read straight off the real invitation's diagonal, corner to corner */
+  background:linear-gradient(152deg,
+    #A2830E 0%,
+    #7B6008 15%,
+    #503403 33%,
+    #372301 50%,
+    #4A3103 67%,
+    #6E5304 84%,
+    #9A7B0B 100%);
   border:1px solid var(--paper-edge);
   box-shadow:0 30px 60px -20px var(--shadow), 0 0 46px -14px var(--glow);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -565,7 +614,13 @@ section{
   z-index:4; /* above both cards (z-index 2/3) so the peeking back card
                 never paints over this text — it has no z-index of its
                 own otherwise, so DOM order alone isn't enough here */
-  margin-top:14px;
+  /* top:100% anchors this to .cards-position's box, but the fanned-out
+     card B is translated down 3% AND rotated 4deg, so its bottom corner
+     hangs below that box by roughly .04 * --env-w. A flat 14px gap put
+     this text straight on top of that corner at every screen size, so the
+     clearance has to scale with the envelope the same way the overhang
+     does — measured to leave ~16px of real daylight from 360px to 1870px. */
+  margin-top:calc(14px + var(--env-w) * .075);
   width:max-content; max-width:86vw;
   display:flex; align-items:center; justify-content:center; gap:.5rem;
   font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.18em;
@@ -594,9 +649,12 @@ section{
    box size only ever reflects .envelope's un-shifted aspect-ratio), so
    without this, the cards' bottom edge visually paints well past where
    flex layout thinks .envelope-wrap ends — straight over this hint's text.
-   Pre-open there's nothing to clear, so this only adds the gap once open. */
+   Pre-open there's nothing to clear, so this only adds the gap once open.
+   The flat +24px on top of that clears .cards-hint, which hangs a fixed
+   ~7px into this line once the open transition and the float settle —
+   that part is constant, not proportional, so it needs a constant term. */
 .stage-inner:has(.envelope.is-open) .continue-hint{
-  margin-top:calc(var(--env-w) * .2);
+  margin-top:calc(var(--env-w) * .2 + 24px);
 }
 .continue-hint.ready{ opacity:.8; transform:translateY(0); }
 .continue-hint svg{ width:14px; height:14px; animation:continue-nudge 2s ease-in-out infinite; }

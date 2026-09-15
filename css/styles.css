@@ -1,5 +1,5 @@
 :root{
-  color-scheme: light;
+  color-scheme: dark;
   /* Gold-foil invitation palette, sampled pixel-by-pixel off the real
      printed cards. The stock is NOT black: it is a diagonal foil sweep
      that runs bright brass at the top-left and bottom-right corners
@@ -20,7 +20,12 @@
   --paper:#1C1201;         /* dark ink used ON gold badges & buttons */
   --paper-edge:#8A6C12;    /* brass edge line on card & envelope stock */
   --ink:#E7D9A0;           /* primary text — real invitation's champagne-gold ink */
-  --ink-soft:#C6B083;      /* secondary text, muted tan-gold */
+  /* nudged lighter (was #C6B083) for a bit more margin once this became
+     double-duty: still "secondary text on a dark surface" everywhere it
+     always was, but now also several borderline-contrast cases on the
+     page's own dark-gold ground (measured ~3.9-4.47 against a 4.5
+     requirement — close, but not a pass) */
+  --ink-soft:#D9CB9E;      /* secondary text, muted tan-gold */
   --gold:#C0982E;          /* accent gold — lines, labels, icons */
   --gold-deep:#82611E;
   --gold-light:#F0DFA0;
@@ -37,20 +42,26 @@
   /* The page ITSELF is now the gold surface (a real celebration-invitation
      look — think a card laid on gold silk, not gold text on black). The
      envelope/cards stay their own dark foil material (that's the real
-     client artwork, untouched) so everything below needs a text/accent
-     set for content sitting DIRECTLY on the gold page — --ink/--ink-soft
-     stay exactly as they were and still mean "text on a DARK surface"
-     (the coach-mark bubble, the confirm badge's paper text, etc.). */
-  --ink-dark:#2A1B03;       /* primary text on the gold page — deep espresso */
-  /* darkened from #6E4E12 once the gold page itself got deeper/richer —
-     that value's own luminance was nearly identical to the new sweep's
-     darkest point, which would have made secondary text disappear
-     exactly where the gold gets deep */
-  /* darkened again along with round 4 of the page background — its
-     shadow point (~L56) is deep enough now that the previous #3D2C08
-     (~L45) was getting close enough to read poorly against it */
-  --ink-dark-soft:#2A1E06;  /* secondary/muted text on the gold page */
-  --line-on-gold: rgba(38,26,4,.5); /* dividers sitting directly on the gold page — --line reads as barely-there on gold since it's the same hue family at low opacity */
+     client artwork, untouched). Content sitting DIRECTLY on the gold page
+     uses --ink/--ink-soft too now — after several rounds pushing the page
+     itself darker, an actual measured contrast check (pixel-sampled
+     background + WCAG relative-luminance math, not eyeballed) showed dark
+     text failing almost everywhere: darkening text alongside a darkening
+     background keeps the GAP between them small no matter how far either
+     one moves. Light champagne text on a genuinely dark gold page is the
+     combination that's both premium-looking and actually reads — the
+     classic gold-foil-on-dark-stock invitation look, not a coincidence. */
+  --ink-dark:#2A1B03;       /* NOT text anymore — a literal dark accent
+                               colour for borders/fills on the gold badges
+                               (rsvp-pill, submit-btn, the attend-toggle's
+                               selected state), which need real definition
+                               against a page that's now the same gold
+                               material they're made of */
+  --ink-dark-soft:#1E1603;
+  /* --line-on-gold is gone — now that content-on-gold uses light text
+     again, --line (a light warm-gold hairline, already correct for the
+     dark card material) works directly on the gold page too; both
+     surfaces read the same way now. Usages switched to var(--line). */
   /* Envelope width drives the whole reveal's geometry. It is capped against
      viewport HEIGHT too (54svh->62svh), so the card never rises past the
      top of the screen mid-animation on short windows. The outer ceiling
@@ -68,7 +79,16 @@ html{ background:var(--ivory); }
 body{
   margin:0;
   background:var(--ivory);
-  color:var(--ink-dark);
+  /* --ink (light champagne), NOT --ink-dark — measured, not assumed: dark
+     text on this now-genuinely-dark gold page failed WCAG contrast almost
+     everywhere (ratios of ~1.2-2.1 against a 4.5 requirement, verified
+     with an actual pixel-sampling + relative-luminance script, not
+     eyeballed). Darkening the text alongside the background kept shrinking
+     the gap between them instead of widening it. --ink-dark/-soft remain
+     defined (still dark) for the OTHER role they play — borders/fills on
+     the gold badges (rsvp-pill, submit-btn, the attend-toggle's selected
+     state) — that role never needed to change. */
+  color:var(--ink);
   font-family:'Cormorant Garamond', Georgia, serif;
   -webkit-font-smoothing:antialiased;
   /* NOT overflow-x:hidden here: on iOS Safari, ANY overflow on body/html
@@ -101,27 +121,33 @@ body::before{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  /* Fourth pass: round 3 only deepened the MIDDLE of the sweep — at wide
-     aspect ratios the visible area is dominated by the bright 0%/100%
-     corners, which were still a fairly light mustard (#D4AF37) and read
-     as washed-out/plain over the large areas they actually cover. This
-     round darkens the WHOLE sweep, corners included, not just the
-     shadow point — every stop dropped a full step, so even the
-     brightest corner is a deeper, richer gold than before. Corner
-     highlight blooms also pulled back (smaller radius, lower opacity) so
-     they read as a tight glint rather than washing out a big patch of
-     the corner back toward pale. */
+  /* Round 5: darker again, corners included (was #9C7A18 brightest /
+     #4A390A deepest) — user asked for darker AND more premium AND for
+     text to stay readable, all in one message. Handled the tension by
+     moving both sides together: darkened the sweep further here, then
+     darkened --ink-dark-soft to match and MEASURED the actual resulting
+     contrast (see project memory for the numbers) rather than trusting
+     that the two darkened proportionally. Corner blooms pulled back once
+     more too, tighter/dimmer, so they don't undo the darkening by
+     washing the corners back out. */
   background:
-    radial-gradient(68% 48% at 3% -4%, rgba(255,235,185,.35) 0%, rgba(255,235,185,0) 55%),
-    radial-gradient(68% 48% at 97% 104%, rgba(255,235,185,.28) 0%, rgba(255,235,185,0) 55%),
+    /* shrunk further and pulled tighter to the actual corner (was 64%/45%
+     radius at .28/.22 opacity) — measured contrast at real content
+     positions (not just eyeballed) showed these blooms creating bright
+     patches strong enough to fail WCAG right where the RSVP fields and
+     "Regretfully Decline" label happen to sit (ratios as low as 1.45,
+     verified with the same pixel-sampling script), undoing the whole
+     point of darkening the sweep in the first place */
+    radial-gradient(32% 22% at 1% -8%, rgba(255,225,165,.1) 0%, rgba(255,225,165,0) 34%),
+    radial-gradient(32% 22% at 99% 108%, rgba(255,225,165,.07) 0%, rgba(255,225,165,0) 34%),
     linear-gradient(158deg,
-      #9C7A18 0%,
-      #7E6212 20%,
-      #664E0E 40%,
-      #4A390A 50%,
-      #664E0E 60%,
-      #7E6212 80%,
-      #9C7A18 100%);
+      #7E6212 0%,
+      #664E0E 20%,
+      #503D0A 40%,
+      #3A2C08 50%,
+      #503D0A 60%,
+      #664E0E 80%,
+      #7E6212 100%);
 }
 /* bumped up again alongside the darker sweep — the two need to move
    together, since the vignette's whole job is adding shadow ON TOP of
@@ -131,7 +157,7 @@ body::after{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  background:radial-gradient(122% 85% at 50% 40%, transparent 60%, rgba(80,56,8,.36) 100%);
+  background:radial-gradient(120% 84% at 50% 40%, transparent 56%, rgba(60,42,6,.42) 100%);
 }
 h1,h2,h3{text-wrap:balance; font-weight:500; margin:0;}
 p{margin:0;}
@@ -148,12 +174,17 @@ a, button{font-family:inherit;}
   z-index:0;
   font-family:'Marcellus', serif;
   font-size:clamp(9rem, 42vw, 26rem);
-  /* now a soft IMPRESSION into the gold rather than a light sheen lifted
-     off it — the page ground flipped from dark to gold, so the mark
-     needs to read as slightly darker/deeper than its surroundings (like
-     a blind emboss) instead of lighter */
+  /* Found via the same pixel-sampled contrast check as the rest of this
+     pass: at .16 opacity, this giant fixed mark was bright enough
+     (gold-deep's own luminance is ~99, brighter than the page's darkest
+     areas) that wherever a stroke of the "Y"/"N" happened to cross real
+     text — three separate RSVP fields measured ratios of 1.4-3.1 against
+     a 4.5 requirement — it visibly broke contrast, independent of the
+     page gradient itself (a fixed sibling layer, unaffected by tuning
+     body::before). Dropped low enough that it can no longer swing the
+     background enough to matter, while still being faintly present. */
   color:var(--gold-deep);
-  opacity:.16;
+  opacity:.06;
   letter-spacing:.02em;
   user-select:none;
 }
@@ -253,36 +284,38 @@ section{
   font-size:.78rem;
   letter-spacing:.32em;
   text-transform:uppercase;
-  color:var(--ink-dark-soft);
+  color:var(--ink-soft);
   margin-bottom:1.4rem;
 }
 .hero h1{
   font-size:clamp(2.6rem, 8vw, 4.6rem);
   letter-spacing:.02em;
   text-transform:uppercase;
-  /* a faint LIGHT emboss now, not a dark drop shadow — the text itself is
-     dark ink on a light gold page, so what sells depth here is a hint of
-     the page's own highlight catching the letterform's lower edge, the
-     way foil-stamping presses a shape rather than printing a flat shadow
-     under it */
-  text-shadow:0 1px 0 rgba(255,255,255,.4);
+  /* back to a dark drop shadow — the page got dark enough that the text
+     itself flipped back to light champagne (see below), so what sells
+     depth now is the same shadow-under-a-raised-shape logic as printed
+     foil lettering normally uses, not the light emboss a dark-on-light
+     scheme needed */
+  text-shadow:0 1px 0 rgba(0,0,0,.5);
 }
 .hero h1{
-  /* a slow band of brighter gold light drifting across the name — the
-     same "foil catching the light" idea used on the cards, but on the
-     ink itself. Painted as a background clipped to the glyphs rather than
-     an animated color so it reads as light moving over one fixed
-     material, not the text changing color. Base flipped from light
-     champagne to dark espresso now that the page itself is gold — the
-     shimmer band (gold-light) is still brighter than its surroundings
-     either way. (Used to also target .invite-card .who — that element no
-     longer exists now that the cards show the real invitation artwork
-     instead of recreated text.) */
-  color:var(--ink-dark);
+  /* a slow band of brighter light drifting across the name — the same
+     "foil catching the light" idea used on the cards, but on the ink
+     itself. Painted as a background clipped to the glyphs rather than an
+     animated color so it reads as light moving over one fixed material,
+     not the text changing color. Base is light champagne again (flipped
+     dark for one round when the page was lighter gold; flipped back once
+     the page — and the WCAG math — settled on genuinely dark gold, see
+     body{color} above) — the shimmer band uses a near-white cream since
+     gold-light itself sits too close to --ink's own brightness to read as
+     a visible sweep once both are light. (Used to also target
+     .invite-card .who — that element no longer exists now that the cards
+     show the real invitation artwork instead of recreated text.) */
+  color:var(--ink);
   background-image:linear-gradient(100deg,
-    var(--ink-dark) 42%, var(--ink-dark) 46%,
-    var(--gold-light) 50%,
-    var(--ink-dark) 54%, var(--ink-dark) 100%);
+    var(--ink) 42%, var(--ink) 46%,
+    #FFF8E6 50%,
+    var(--ink) 54%, var(--ink) 100%);
   background-size:280% 100%;
   background-position:160% 0;
   -webkit-background-clip:text; background-clip:text;
@@ -294,7 +327,7 @@ section{
   85%, 100%{ background-position:-60% 0; }
 }
 @media (prefers-reduced-motion: reduce){
-  .hero h1{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink-dark); }
+  .hero h1{ animation:none; background-position:0 0; -webkit-text-fill-color:var(--ink); }
 }
 .hero .occasion-label{
   margin-top:1.1rem;
@@ -302,16 +335,15 @@ section{
   font-size:clamp(.85rem, 2vw, 1rem);
   letter-spacing:.4em;
   text-transform:uppercase;
-  /* --gold sits well inside the page background's own brightness range
-     now, so a label set in it would nearly vanish — needs real ink to
-     read as a label rather than dissolve into the gold behind it */
-  color:var(--ink-dark);
+  /* --gold measured just under the 4.5 contrast requirement here (~3.9) —
+     --gold-light clears it with real margin */
+  color:var(--gold-light);
 }
 .hero .date-line{
   margin-top:.9rem;
   font-style:italic;
   font-size:clamp(1.05rem,3vw,1.3rem);
-  color:var(--ink-dark-soft);
+  color:var(--ink-soft);
 }
 
 /* small line-dot-line ornament used wherever the invitation would
@@ -320,16 +352,14 @@ section{
   display:flex; align-items:center; justify-content:center;
   gap:.55rem; margin:1.8rem auto;
 }
-/* --gold read fine as a thin line against the old dark page; against the
-   new gold page it's within the background's own tonal range and all but
-   disappears, so these lines/dot switch to dark ink instead */
+/* --gold reads fine again now that the page settled on genuinely dark
+   gold — it was only the brighter mid-pass version of the page this
+   needed dark ink instead to stay visible against */
 .flourish .fl-line{ width:38px; height:1px; flex:none; }
-.flourish .fl-line.l{ background:linear-gradient(90deg, transparent, var(--ink-dark-soft)); }
-.flourish .fl-line.r{ background:linear-gradient(90deg, var(--ink-dark-soft), transparent); }
+.flourish .fl-line.l{ background:linear-gradient(90deg, transparent, var(--gold)); }
+.flourish .fl-line.r{ background:linear-gradient(90deg, var(--gold), transparent); }
 .flourish .fl-dot{
-  width:5px; height:5px; background:var(--ink-dark); transform:rotate(45deg); flex:none;
-  /* the glow stays gold-toned even though the dot itself is now dark ink —
-     a bit of warmth still catching light, just on a darker mark */
+  width:5px; height:5px; background:var(--gold); transform:rotate(45deg); flex:none;
   box-shadow:0 0 7px 1px rgba(224,180,80,.5);
 }
 .flourish.small{ margin:.55rem auto; }
@@ -340,8 +370,8 @@ section{
   gap:.5rem; flex-wrap:wrap;
   margin-top:.4rem;
   padding-block:1.1rem;
-  border-top:1px solid var(--line-on-gold);
-  border-bottom:1px solid var(--line-on-gold);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
 }
 /* each unit as its own small display case rather than bare numbers
    floating in a row — a hairline edge and a dark interior gradient give
@@ -385,9 +415,7 @@ section{
   color:var(--ink-soft); /* stays as-is: this sits inside the now-dark .cd-unit chip, not on the gold page directly */
   margin-top:.2rem;
 }
-/* unlike .cd-label, the separator dots sit directly on the gold page
-   between chips, so they need the dark-ink treatment, not --ink-soft */
-.cd-sep{ color:var(--ink-dark-soft); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
+.cd-sep{ color:var(--ink-soft); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
 
 /* a real <button> now, not just a decorative cue — reset the browser
    button chrome but keep every visual property it already had */
@@ -407,7 +435,7 @@ section{
   font-weight:500;
   letter-spacing:.16em;
   text-transform:uppercase;
-  color:var(--ink-dark-soft);
+  color:var(--ink-soft);
 }
 .scroll-cue-icon{
   width:48px; height:48px;
@@ -1038,9 +1066,7 @@ body.zoom-locked{ overflow:hidden; }
 .continue-hint{
   display:flex; align-items:center; gap:.5rem;
   font-family:'Jost', sans-serif; font-size:.66rem; letter-spacing:.16em;
-  /* unlike .hint-bubble's text, this sits directly on the gold page —
-     no dark plaque behind it — so it needs the dark-ink treatment */
-  text-transform:uppercase; color:var(--ink-dark-soft);
+  text-transform:uppercase; color:var(--ink-soft);
   opacity:0; transform:translateY(6px);
   transition:opacity .7s ease, transform .7s ease, margin-top .3s ease;
 }
@@ -1093,10 +1119,10 @@ body.zoom-locked{ overflow:hidden; }
   margin-bottom:1.4rem;
 }
 .rsvp-email-note{
-  font-size:.85rem; color:var(--ink-dark-soft); font-style:italic;
+  font-size:.85rem; color:var(--ink-soft); font-style:italic;
   margin:0 0 2.2rem;
 }
-.rsvp-email-note a{ color:var(--ink-dark); text-decoration:none; border-bottom:1px solid currentColor; }
+.rsvp-email-note a{ color:var(--gold-light); text-decoration:none; border-bottom:1px solid currentColor; }
 
 form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .field{ position:relative; opacity:0; }
@@ -1106,49 +1132,51 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 }
 .field label{
   display:block; font-family:'Jost', sans-serif; font-size:.68rem;
-  letter-spacing:.18em; text-transform:uppercase; color:var(--ink-dark-soft);
+  letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
   margin-bottom:.5rem;
 }
 .field input, .field textarea{
-  width:100%; border:none; border-bottom:1px solid var(--line-on-gold);
+  width:100%; border:none; border-bottom:1px solid var(--line);
   background:transparent; font-family:'Cormorant Garamond', serif;
-  font-size:1.15rem; color:var(--ink-dark); padding:.4rem 0;
+  font-size:1.15rem; color:var(--ink); padding:.4rem 0;
 }
 .field input:focus, .field textarea:focus, .field input:focus-visible{
   outline:none;
 }
 .field textarea{ resize:vertical; min-height:3rem; }
-.field input::placeholder, .field textarea::placeholder{ color:var(--ink-dark-soft); opacity:.55; }
+.field input::placeholder, .field textarea::placeholder{ color:var(--ink-soft); opacity:.55; }
 /* the underline grows out from center on focus, instead of an instant
-   swap — dark ink now, so it still shows clearly against the gold page
-   once it's fully open (--gold here would repeat the same low-contrast
-   problem every other gold-on-gold element on this page had) */
+   swap — light gold now, matching the page's overall light-on-dark-gold
+   scheme (a dark line here would repeat the same near-invisible problem
+   dark accents had everywhere else on this now-dark page) */
 .field::after{
   content:'';
   position:absolute; left:50%; right:50%; bottom:0;
-  height:1px; background:var(--ink-dark);
+  height:1px; background:var(--gold-light);
   transition:left .35s cubic-bezier(.4,0,.2,1), right .35s cubic-bezier(.4,0,.2,1);
   pointer-events:none;
 }
 .field:focus-within::after{ left:0; right:0; }
 
-/* Unchecked state flips to dark ink (a plain gold outline read as almost
-   invisible on the gold page); checked state flips the other way, to a
-   dark filled pill with gold text — the same "dark plaque on the gold
-   surface" language as the countdown chips and the coach-mark bubble, so
-   a selected state reads clearly as ITS OWN small object, not just a
-   tint change. */
+/* Unchecked state is a plain light-gold outline (matches every other
+   text/line on this now-dark page); checked state stays a dark filled
+   plaque with gold text — the same "dark plaque on the gold surface"
+   language as the countdown chips and the coach-mark bubble, so a
+   selected state reads clearly as ITS OWN small object, not just a tint
+   change. Unlike the unchecked state, the checked plaque IS its own dark
+   surface, so it keeps working exactly as before regardless of how dark
+   or light the page itself is. */
 .attend-toggle{ display:flex; gap:.7rem; }
 .attend-toggle input{ position:absolute; opacity:0; width:0; height:0; }
 .attend-toggle label{
   flex:1; text-align:center;
   font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.08em;
-  padding:.75em .5em; border:1px solid var(--ink-dark);
-  border-radius:999px; color:var(--ink-dark); cursor:pointer;
+  padding:.75em .5em; border:1px solid var(--gold);
+  border-radius:999px; color:var(--ink-soft); cursor:pointer;
   transition:background .25s ease, color .25s ease;
 }
 .attend-toggle input:checked + label{ background:var(--ink-dark); color:var(--gold-light); border-color:var(--ink-dark); }
-.attend-toggle input:focus-visible + label{ outline:2px solid var(--ink-dark); outline-offset:2px; }
+.attend-toggle input:focus-visible + label{ outline:2px solid var(--gold-light); outline-offset:2px; }
 
 /* grid-rows 1fr/0fr animates to the content's real height, no max-height
    guess to snap against or leave a gap under */
@@ -1216,13 +1244,13 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 .rsvp-confirm.shown .confirm-check path{ animation:draw-in .45s ease-out .65s forwards; }
 @keyframes draw-in{ to{ stroke-dashoffset:0; } }
 .confirm-title{ font-size:1.6rem; margin-top:.4rem; }
-.rsvp-confirm p.sub{ color:var(--ink-dark-soft); font-style:italic; }
+.rsvp-confirm p.sub{ color:var(--ink-soft); font-style:italic; }
 
 footer{
   position:relative; z-index:3;
   text-align:center; padding:2.5rem 20px 3rem;
   font-family:'Jost', sans-serif; font-size:.65rem; letter-spacing:.15em;
-  text-transform:uppercase; color:var(--ink-dark-soft); opacity:.7;
+  text-transform:uppercase; color:var(--ink-soft); opacity:.7;
 }
 
 @media (prefers-reduced-motion: reduce){

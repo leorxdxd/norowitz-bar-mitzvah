@@ -132,20 +132,203 @@
   var cardB = document.getElementById('cardB');
   var cards = [cardA, cardB];
   cardA.classList.add('is-front');
+  var hoverFine = window.matchMedia('(hover:hover) and (pointer:fine)');
 
   function bringToFront(card){
     cards.forEach(function(c){ c.classList.toggle('is-front', c === card); });
   }
 
+  // Blur-up: each .card-art starts softly blurred (see .card-art.is-loading
+  // in CSS) and resolves the instant it's actually decoded, rather than
+  // popping in instantly at whatever moment the browser happens to finish —
+  // a small "developing photo" beat that also masks a slow network.
+  cards.forEach(function(card){
+    var art = card.querySelector('.card-art');
+    function clearLoading(){ art.classList.remove('is-loading'); }
+    if(art.complete) clearLoading();
+    else art.addEventListener('load', clearLoading);
+
+    // The initial reveal (.card-art-reveal, played once via .is-rising) uses
+    // fill:both so it holds its resting transform (and opacity) after
+    // finishing — which means it keeps overriding this element's inline
+    // style forever unless explicitly released. Clearing the animation the
+    // moment it ends hands control back to plain CSS/inline styling, which
+    // the tilt effect below depends on — but the instant it's cleared, the
+    // element would otherwise fall back to ".invite-card > *{opacity:0}"
+    // (nothing else pins opacity to 1 once the animation itself is gone),
+    // so both have to be set together, in the same tick, or the card
+    // visibly vanishes the moment its own reveal finishes.
+    art.addEventListener('animationend', function(e){
+      if(e.animationName !== 'card-art-reveal') return;
+      art.style.animation = 'none';
+      art.style.opacity = '1';
+      art.style.transform = 'none';
+    });
+
+    // ---------- 3D tilt-follow, desktop only ----------
+    // A physical card resting on a table catches the light differently as
+    // you move around it; this is that, in miniature, on the artwork itself
+    // (not the whole .invite-card, whose own transform is busy with the
+    // fan/hover/front choreography already).
+    card.addEventListener('mousemove', function(e){
+      if(!hoverFine.matches || !card.classList.contains('is-out')) return;
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      art.style.transform = 'perspective(700px) rotateX(' + (py * -9).toFixed(2) + 'deg) rotateY(' + (px * 11).toFixed(2) + 'deg)';
+    });
+    card.addEventListener('mouseleave', function(){
+      if(!hoverFine.matches) return;
+      art.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg)';
+    });
+  });
+
+  // ---------- small gold sparkle burst on tap ----------
+  var reduceMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function burstSparkles(x, y){
+    if(reduceMotionMQ.matches) return;
+    for(var i = 0; i < 7; i++){
+      var s = document.createElement('span');
+      s.className = 'sparkle';
+      var angle = (Math.PI * 2 / 7) * i + Math.random() * 0.6;
+      var dist = 34 + Math.random() * 28;
+      s.style.setProperty('--sx', x + 'px');
+      s.style.setProperty('--sy', y + 'px');
+      s.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(0) + 'px');
+      s.style.setProperty('--dy', (Math.sin(angle) * dist).toFixed(0) + 'px');
+      s.style.animationDelay = (Math.random() * 60) + 'ms';
+      document.body.appendChild(s);
+      (function(el){ setTimeout(function(){ el.remove(); }, 900); })(s);
+    }
+  }
+
+  // ---------- tap feedback: spring-bounce + riffle-flip + sparkle + haptic ----------
+  // Runs whenever a card is actually TAPPED (not when prev/next/dots quietly
+  // switch the zoom lightbox's contents further down).
+  function activateCard(card, originX, originY){
+    bringToFront(card);
+    card.classList.add('is-tapped');
+    setTimeout(function(){ card.classList.remove('is-tapped'); }, 650);
+    // A one-off Web Animations API flip, deliberately NOT a CSS class-driven
+    // animation: .card-art already runs a real CSS animation for its
+    // initial reveal (fill:both), and a second one toggled by a class would
+    // either lose to it outright or force it to restart from its
+    // opacity:0 frame the moment the class comes back off. WAAPI runs
+    // alongside without touching animation-name at all, so it can't collide
+    // with that animation either way.
+    if(!reduceMotionMQ.matches){
+      var art = card.querySelector('.card-art');
+      if(art.animate){
+        art.animate([
+          {transform:'rotateY(0deg)'},
+          {transform:'rotateY(-16deg)', offset:.4},
+          {transform:'rotateY(0deg)'}
+        ], {duration:550, easing:'ease-out'});
+      }
+    }
+    burstSparkles(originX, originY);
+    if(navigator.vibrate) navigator.vibrate(15);
+  }
+
   var zoomOverlay = document.getElementById('cardZoomOverlay');
   var zoomImg = document.getElementById('cardZoomImg');
   var zoomClose = document.getElementById('cardZoomClose');
+  var zoomPrev = document.getElementById('cardZoomPrev');
+  var zoomNext = document.getElementById('cardZoomNext');
+  var zoomDots = Array.prototype.slice.call(document.querySelectorAll('.zoom-dot'));
+  var zoomCalendarLink = document.getElementById('zoomCalendarLink');
+  var zoomDirectionsLink = document.getElementById('zoomDirectionsLink');
+  var zoomSaveLink = document.getElementById('zoomSaveLink');
   var lastFocusedCard = null;
-  function openZoom(card){
+  var currentZoomCard = null;
+
+  // ---------- pinch-to-zoom + drag-to-pan inside the open lightbox ----------
+  var zs = {scale:1, panX:0, panY:0, pinchStartDist:0, pinchStartScale:1,
+            isPanning:false, panStartX:0, panStartY:0, lastTapTime:0};
+  function zoomDist(t0, t1){
+    var dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+    return Math.sqrt(dx*dx + dy*dy);
+  }
+  function applyZoomTransform(){
+    zoomImg.style.transform = 'translate(' + zs.panX + 'px,' + zs.panY + 'px) scale(' + zs.scale + ')';
+  }
+  function resetZoomTransform(){
+    zs.scale = 1; zs.panX = 0; zs.panY = 0; zs.isPanning = false;
+    zoomImg.classList.remove('is-manual-zoom');
+    zoomImg.style.transform = '';
+  }
+  zoomImg.addEventListener('touchstart', function(e){
+    if(e.touches.length === 2){
+      zs.pinchStartDist = zoomDist(e.touches[0], e.touches[1]);
+      zs.pinchStartScale = zs.scale;
+      zoomImg.classList.add('is-manual-zoom');
+    } else if(e.touches.length === 1 && zs.scale > 1){
+      zs.isPanning = true;
+      zs.panStartX = e.touches[0].clientX - zs.panX;
+      zs.panStartY = e.touches[0].clientY - zs.panY;
+    }
+  }, {passive:true});
+  zoomImg.addEventListener('touchmove', function(e){
+    if(e.touches.length === 2){
+      e.preventDefault();
+      var scale = zs.pinchStartScale * (zoomDist(e.touches[0], e.touches[1]) / zs.pinchStartDist);
+      zs.scale = Math.min(Math.max(scale, 1), 4);
+      applyZoomTransform();
+    } else if(e.touches.length === 1 && zs.isPanning){
+      e.preventDefault();
+      zs.panX = e.touches[0].clientX - zs.panStartX;
+      zs.panY = e.touches[0].clientY - zs.panStartY;
+      applyZoomTransform();
+    }
+  }, {passive:false});
+  zoomImg.addEventListener('touchend', function(e){
+    if(e.touches.length > 0) return;
+    zs.isPanning = false;
+    var now = Date.now();
+    if(now - zs.lastTapTime < 300){
+      // double-tap: toggle between fitted and a fixed 2.4x zoom
+      if(zs.scale > 1){ resetZoomTransform(); }
+      else { zs.scale = 2.4; zoomImg.classList.add('is-manual-zoom'); applyZoomTransform(); }
+    } else if(zs.scale <= 1.02){
+      resetZoomTransform();
+    }
+    zs.lastTapTime = now;
+  });
+
+  function cardKey(card){ return card === cardA ? 'a' : 'b'; }
+  function cardForKey(key){ return key === 'a' ? cardA : cardB; }
+  function toGCalStamp(iso){ return iso.replace(/[-:]/g, ''); }
+  function syncZoomChrome(card){
+    var key = cardKey(card);
+    zoomDots.forEach(function(dot){ dot.classList.toggle('is-active', dot.dataset.card === key); });
+    var params = 'action=TEMPLATE'
+      + '&text=' + encodeURIComponent(card.dataset.eventTitle)
+      + '&dates=' + toGCalStamp(card.dataset.eventStart) + '/' + toGCalStamp(card.dataset.eventEnd)
+      + '&details=' + encodeURIComponent('Bar Mitzvah of Yehoshua Norowitz. RSVP: rsvp@ynbarmitzvah2026.com')
+      + '&location=' + encodeURIComponent(card.dataset.address)
+      + '&ctz=America/New_York';
+    zoomCalendarLink.href = 'https://www.google.com/calendar/render?' + params;
+    zoomDirectionsLink.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(card.dataset.address);
+    var art = card.querySelector('.card-art');
+    zoomSaveLink.href = art.src;
+    zoomSaveLink.download = card.dataset.filename || 'invitation.png';
+  }
+  // Used by prev/next/dots to switch what the lightbox is showing WITHOUT
+  // closing it — quietly keeps the underlying card stack (bringToFront) in
+  // sync too, so whichever card was last viewed is still the one on top
+  // once the lightbox closes.
+  function showZoomCard(card){
     var art = card.querySelector('.card-art');
     zoomImg.src = art.src;
     zoomImg.alt = art.alt;
+    resetZoomTransform();
+    syncZoomChrome(card);
+    currentZoomCard = card;
+    bringToFront(card);
+  }
+  function openZoom(card){
     lastFocusedCard = card;
+    showZoomCard(card);
     zoomOverlay.classList.add('is-open');
     zoomOverlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('zoom-locked'); // stops background scroll while open
@@ -155,6 +338,7 @@
     zoomOverlay.classList.remove('is-open');
     zoomOverlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('zoom-locked');
+    resetZoomTransform();
     if(lastFocusedCard) lastFocusedCard.focus();
   }
   zoomClose.addEventListener('click', closeZoom);
@@ -165,21 +349,57 @@
     if(e.target === zoomOverlay) closeZoom();
   });
   document.addEventListener('keydown', function(e){
-    if(e.key === 'Escape' && zoomOverlay.classList.contains('is-open')) closeZoom();
+    if(!zoomOverlay.classList.contains('is-open')) return;
+    if(e.key === 'Escape') closeZoom();
+    if(e.key === 'ArrowLeft') showZoomCard(currentZoomCard === cardA ? cardB : cardA);
+    if(e.key === 'ArrowRight') showZoomCard(currentZoomCard === cardA ? cardB : cardA);
+  });
+  zoomPrev.addEventListener('click', function(){ showZoomCard(currentZoomCard === cardA ? cardB : cardA); });
+  zoomNext.addEventListener('click', function(){ showZoomCard(currentZoomCard === cardA ? cardB : cardA); });
+  zoomDots.forEach(function(dot){
+    dot.addEventListener('click', function(){ showZoomCard(cardForKey(dot.dataset.card)); });
   });
 
   cards.forEach(function(card){
-    card.addEventListener('click', function(){
-      bringToFront(card);
+    card.addEventListener('click', function(e){
+      if(card.dataset.suppressClick){ delete card.dataset.suppressClick; return; }
+      activateCard(card, e.clientX, e.clientY);
       openZoom(card);
     });
     card.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
-        bringToFront(card);
+        var r = card.getBoundingClientRect();
+        activateCard(card, r.left + r.width/2, r.top + r.height/2);
         openZoom(card);
       }
     });
+  });
+
+  // ---------- swipe left/right on mobile switches which card is in front ----------
+  // (without opening the lightbox — a swipe is "shuffle the deck", a tap is
+  // "look closer", the same distinction a guest would make with real cards)
+  var cardsPosition = document.getElementById('cardsPosition');
+  var touchStart = null;
+  cardsPosition.addEventListener('touchstart', function(e){
+    if(e.touches.length !== 1) return;
+    touchStart = {x:e.touches[0].clientX, y:e.touches[0].clientY, time:Date.now()};
+  }, {passive:true});
+  cardsPosition.addEventListener('touchend', function(e){
+    if(!touchStart) return;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+    touchStart = null;
+    if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      var target = dx < 0 ? (cardA.classList.contains('is-front') ? cardB : cardA)
+                           : (cardB.classList.contains('is-front') ? cardA : cardB);
+      var r = target.getBoundingClientRect();
+      activateCard(target, r.left + r.width/2, r.top + r.height/2);
+      // most mobile browsers already suppress the synthetic click after a
+      // drag-like touch, but this is a explicit belt-and-suspenders guard
+      // against the swipe also re-triggering the plain tap-to-zoom handler
+      target.dataset.suppressClick = '1';
+    }
   });
 
   // ---------- rsvp section fades in as it's reached ----------

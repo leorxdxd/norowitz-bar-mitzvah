@@ -740,7 +740,21 @@ section{
   z-index:1;
   pointer-events:none;
 }
-.envelope.is-open .cards-position::after{ opacity:.6; }
+.envelope.is-open .cards-position::after{
+  opacity:.6;
+  /* tracks the float keyframes' own 5.5s/50% timing exactly: the shadow
+     shrinks and lightens right as the cards lift, and settles back as
+     they sink — the contact-shadow behaviour of an object actually
+     leaving and returning to a surface, not just a static blob underneath */
+  animation:shadow-pulse 5.5s ease-in-out 5.4s infinite;
+}
+@keyframes shadow-pulse{
+  0%,100%{ opacity:.6; transform:translateX(-50%) scale(1); }
+  50%{ opacity:.38; transform:translateX(-50%) scale(.9); }
+}
+@media (prefers-reduced-motion: reduce){
+  .envelope.is-open .cards-position::after{ animation:none; }
+}
 
 .invite-card{
   /* inset:0 + margin:auto (rather than stretching to fill, as it used to)
@@ -793,6 +807,9 @@ section{
      this box's own foil-gradient "mat" showing around it */
   padding:3%;
   cursor:pointer;
+  /* gives the riffle-flip's rotateY on .card-art (a child) real 3D depth
+     instead of rendering as a flat horizontal squash */
+  perspective:900px;
   /* fully opaque even while waiting: the card is hidden by the pocket in
      front of it, not by being transparent. Fading a card in is what made
      the old reveal look like it materialised rather than came out. */
@@ -836,6 +853,65 @@ section{
   box-shadow:0 34px 70px -18px var(--shadow), 0 0 60px -10px var(--glow);
 }
 .invite-card:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; }
+
+/* .card-art's reveal replaces the generic ".invite-card.is-rising > *"
+   rise-in (this selector is more specific, so it wins for .card-art only —
+   .card-zoom-cue and .card-peel still get the plain rise-in below). Same
+   fade + rise timing as its siblings, PLUS a light paper "bend" layered
+   into the same keyframe rather than a second competing animation, since
+   two animations both touching `transform` on one element don't blend —
+   the later one in the list simply overrides the earlier one's values. */
+@keyframes card-art-reveal{
+  0%{ opacity:0; transform:translateY(16px) scale(1) skewX(0deg); }
+  45%{ opacity:1; transform:translateY(4px) scale(.97,1.02) skewX(1.1deg); }
+  75%{ transform:translateY(-1px) scale(1.01,.99) skewX(-.4deg); }
+  100%{ opacity:1; transform:translateY(0) scale(1) skewX(0deg); }
+}
+.invite-card.is-rising .card-art{
+  animation:card-art-reveal .85s cubic-bezier(.22,.68,0,1.03) .85s both;
+}
+
+/* tapping a card to bring it to the front gets a springy overshoot instead
+   of the reveal's own eased glide — a quick "shuffled to the top of the
+   deck" snap. (The matching riffle-flip rotateY on .card-art is fired from
+   script.js via the Web Animations API, NOT a CSS animation class here —
+   .card-art already runs card-art-reveal above as a real CSS animation, and
+   a second CSS animation toggled by class would either get silently
+   overridden by it or, worse, force card-art-reveal to restart from its
+   0%-opacity:0 frame the moment the class is removed again. A WAAPI call
+   is a self-contained one-off that doesn't touch animation-name at all, so
+   it can't collide with it either way.) */
+.invite-card.is-tapped{
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1), opacity .6s ease, box-shadow .4s ease;
+}
+@media (prefers-reduced-motion: reduce){
+  .invite-card.is-tapped{ transition:transform .95s cubic-bezier(.2,.78,.26,1), opacity .6s ease, box-shadow .4s ease; }
+}
+
+/* a small burst of gold sparkle motes on tap — script.js spawns a handful
+   of these as real (short-lived, then removed) DOM elements positioned
+   from the tap point, each with its own random drift set via inline
+   custom properties so the burst never looks mechanically identical twice */
+.sparkle{
+  /* fixed + appended to <body> (see script.js), NOT nested inside
+     .invite-card — that element already has a ".invite-card.is-rising > *"
+     rule (higher specificity than a single class) that would hijack any
+     child's animation to "rise-in" instead of this burst */
+  position:fixed;
+  left:var(--sx,50%); top:var(--sy,50%);
+  width:6px; height:6px;
+  border-radius:50%;
+  background:radial-gradient(circle, #FFF6DE 0%, var(--gold-light) 55%, transparent 100%);
+  pointer-events:none;
+  z-index:210; /* above the zoom overlay (200) too, since a burst can fire right as it opens */
+  opacity:0;
+  animation:sparkle-burst .7s ease-out forwards;
+}
+@keyframes sparkle-burst{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.3); }
+  15%{ opacity:1; }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--dx,0px)), calc(-50% + var(--dy,0px))) scale(1); }
+}
 
 /* a single soft gold sheen sweeps across each card the moment IT is
    revealed — relative to its own .is-out, so the two cards' sheens land
@@ -904,6 +980,9 @@ section{
   .invite-card.card-b.is-out:hover{ transform:translate(9%,-20px) scale(1.14) rotate(1deg); box-shadow:0 46px 90px -20px var(--shadow), 0 0 64px -10px var(--glow); z-index:8; }
   .invite-card.is-out.is-front:hover{ transform:translate(0,-22px) scale(1.18) rotate(0deg); z-index:8; }
   .invite-card:hover .card-zoom-cue{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  /* a real magnifier cursor, not the plain pointer arrow — reads as "click
+     to inspect closer" the instant a mouse crosses into a settled card */
+  .invite-card.is-out{ cursor:zoom-in; }
 }
 /* touch devices have no hover to preview with, so the cue sits faintly
    visible from the start instead of appearing only on an interaction that
@@ -911,6 +990,37 @@ section{
    tapping does something beyond just reordering the cards */
 @media (hover:none){
   .card-zoom-cue{ opacity:.85; transform:translate(-50%,-50%) scale(1); }
+}
+
+/* very large desktop monitors have enough clear space either side of the
+   (width-capped, see --env-w) envelope that fanning the two cards only
+   9-13% apart still reads as one overlapping stack sitting in a lot of
+   empty page. Past this size, spread them into a genuinely side-by-side
+   pair instead — same pull-out/rise choreography untouched, only the
+   settled resting position changes. */
+@media (min-width:1600px) and (min-height:840px){
+  /* both cards are ~86% of --env-w wide and start centred on the same
+     point, so clearing each other with real daylight between them (not
+     just peeking out from behind one another) needs roughly a half-card-
+     width shift each way, not the ~9-13% fan offset the overlapping
+     "pulled from one envelope" look uses everywhere else. Rotation is
+     flattened to 0 here too — a fanned tilt reads as "spread from a deck",
+     square reads as "displayed side by side", which is the point of this
+     variant. */
+  .invite-card.card-a.is-out{ transform:translate(-58%,0) scale(1) rotate(0deg); }
+  .invite-card.card-b.is-out{ transform:translate(58%,0) scale(1) rotate(0deg); }
+  /* the generic ".is-out.is-front" rule elsewhere (see above) re-centres
+     whichever card was tapped last — exactly what a non-overlapping
+     side-by-side layout can't do, or the "front" card would just slide
+     back on top of the other one. These two (each more specific, since
+     they also name the card) override it: "front" here only means a
+     little emphasis in place, not a move to centre. */
+  .invite-card.card-a.is-out.is-front{ transform:translate(-58%,-1%) scale(1.04) rotate(0deg); }
+  .invite-card.card-b.is-out.is-front{ transform:translate(58%,-1%) scale(1.04) rotate(0deg); }
+}
+@media (min-width:1600px) and (min-height:840px) and (hover:hover) and (pointer:fine){
+  .invite-card.card-a.is-out:hover{ transform:translate(-58%,-22px) scale(1.08) rotate(0deg); }
+  .invite-card.card-b.is-out:hover{ transform:translate(58%,-22px) scale(1.08) rotate(0deg); }
 }
 .card-zoom-cue{
   position:absolute; left:50%; top:50%;
@@ -958,10 +1068,42 @@ body.zoom-locked{ overflow:hidden; }
   box-shadow:0 40px 100px -20px rgba(0,0,0,.8), 0 0 0 1px var(--paper-edge);
   transform:scale(.92);
   transition:transform .35s cubic-bezier(.22,.68,0,1.03);
+  /* pinch/pan is handled entirely in JS (see script.js) — this stops the
+     browser's own native touch-scroll/pinch from fighting our gesture
+     handling once a finger is on the image itself */
+  touch-action:none;
+  z-index:1;
 }
 .card-zoom-overlay.is-open .card-zoom-img{ transform:scale(1); }
+/* a slow, continuous ken-burns drift while an image sits open — starts
+   only once the open transition has settled (the .4s delay), with its own
+   0% matching that resting scale(1) exactly so there's no visible jump
+   between "just opened" and "now drifting" */
+@keyframes ken-burns{
+  0%{ transform:scale(1) translate(0,0); }
+  100%{ transform:scale(1.06) translate(-1.4%,-1%); }
+}
+.card-zoom-overlay.is-open .card-zoom-img{
+  animation:ken-burns 22s ease-in-out .4s infinite alternate;
+}
+/* once a guest starts pinching/panning, JS adds this to take manual control
+   of transform via inline style — the ambient ken-burns drift would
+   otherwise keep overwriting whatever zoom/pan position they set. Needs to
+   at least match the ken-burns rule's own specificity (three classes) to
+   actually win, hence repeating the full ancestor chain rather than just
+   ".card-zoom-img.is-manual-zoom" on its own. */
+.card-zoom-overlay.is-open .card-zoom-img.is-manual-zoom{ animation:none; transition:none; }
+/* darkens toward the corners so the eye stays on the invitation itself
+   rather than the flat backdrop around it — sits above the image (later in
+   DOM) but pointer-events:none so it never intercepts pinch/pan/drag */
+.card-zoom-vignette{
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at center, transparent 42%, rgba(5,3,0,.55) 100%);
+  pointer-events:none;
+  z-index:2;
+}
 .card-zoom-close{
-  position:absolute; top:20px; right:20px; z-index:1;
+  position:absolute; top:20px; right:20px; z-index:3;
   width:42px; height:42px;
   border-radius:50%;
   border:1px solid var(--gold-deep);
@@ -974,8 +1116,82 @@ body.zoom-locked{ overflow:hidden; }
 .card-zoom-close svg{ width:18px; height:18px; }
 .card-zoom-close:hover{ background:var(--gold-deep); transform:scale(1.06); }
 .card-zoom-close:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+/* prev/next — switch which invitation is showing without leaving the
+   lightbox. Same round chrome as the close button, pinned to either edge. */
+.card-zoom-nav{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:3;
+  width:46px; height:46px;
+  border-radius:50%;
+  border:1px solid var(--gold-deep);
+  background:rgba(15,9,0,.7);
+  color:var(--gold-light);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:background .25s ease, transform .25s ease;
+}
+.card-zoom-nav svg{ width:20px; height:20px; }
+.card-zoom-nav.prev{ left:16px; }
+.card-zoom-nav.next{ right:16px; }
+.card-zoom-nav:hover{ background:var(--gold-deep); }
+.card-zoom-nav:hover.prev{ transform:translateY(-50%) translateX(-2px); }
+.card-zoom-nav:hover.next{ transform:translateY(-50%) translateX(2px); }
+.card-zoom-nav:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+@media (max-width:640px){
+  .card-zoom-nav{ width:38px; height:38px; }
+  .card-zoom-nav.prev{ left:6px; }
+  .card-zoom-nav.next{ right:6px; }
+}
+
+/* "1 of 2" pager — reflects (and can jump to) whichever card is showing */
+.card-zoom-dots{
+  position:absolute; left:50%; bottom:88px; transform:translateX(-50%);
+  z-index:3;
+  display:flex; gap:10px;
+}
+.zoom-dot{
+  width:8px; height:8px; border-radius:50%; padding:0;
+  border:1px solid var(--gold-light);
+  background:transparent;
+  cursor:pointer;
+  transition:background .25s ease, transform .25s ease;
+}
+.zoom-dot.is-active{ background:var(--gold-light); transform:scale(1.2); }
+.zoom-dot:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+/* calendar / directions / save-image — the three practical things a guest
+   actually wants to do once they can read a card up close */
+.card-zoom-actions{
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+  z-index:3;
+  display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+  width:min(94vw, 620px);
+}
+.card-action-btn{
+  display:flex; align-items:center; gap:7px;
+  padding:9px 16px;
+  border-radius:999px;
+  border:1px solid var(--gold-deep);
+  background:rgba(15,9,0,.72);
+  color:var(--gold-light);
+  font-family:'Jost', sans-serif;
+  font-size:.8rem; letter-spacing:.02em;
+  text-decoration:none;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .25s ease, transform .25s ease, border-color .25s ease;
+}
+.card-action-btn svg{ width:16px; height:16px; flex-shrink:0; }
+.card-action-btn:hover{ background:var(--gold-deep); border-color:var(--gold-light); transform:translateY(-1px); }
+.card-action-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+@media (max-width:480px){
+  .card-action-btn{ padding:8px 12px; font-size:.72rem; }
+  .card-zoom-dots{ bottom:78px; }
+  .card-zoom-actions{ bottom:16px; }
+}
 @media (prefers-reduced-motion: reduce){
   .card-zoom-overlay, .card-zoom-img{ transition:opacity .01ms linear, visibility 0s linear; }
+  .card-zoom-overlay.is-open .card-zoom-img{ animation:none; }
 }
 
 /* The real artwork now IS the card's only child (see index.html) — the
@@ -999,6 +1215,48 @@ body.zoom-locked{ overflow:hidden; }
   border-radius:2px;
   pointer-events:none; /* clicks still hit .invite-card's own button role */
   filter:drop-shadow(0 10px 22px rgba(0,0,0,.45));
+  /* a soft torn/deckle edge on the artwork itself rather than a clean
+     rectangle — the surrounding .invite-card foil gradient shows through
+     the notches like a mat behind a deckle-edged print. Fixed, hand-tuned
+     points (not randomised at runtime) so it stays identical every reveal
+     instead of flickering between renders. */
+  clip-path:polygon(
+    0% 1.2%, 3% 0%, 9% 1%, 15% .2%, 22% 1.1%, 29% 0%, 37% .8%, 44% 0%,
+    52% 1%, 60% .1%, 68% 1.2%, 76% 0%, 84% .9%, 92% 0%, 100% 1%,
+    100% 2%, 99.1% 8%, 100% 15%, 99.2% 23%, 100% 31%, 99.3% 40%, 100% 49%,
+    99.1% 58%, 100% 67%, 99.4% 76%, 100% 85%, 99.2% 93%, 100% 98.8%,
+    99% 100%, 92% 99.1%, 85% 100%, 77% 99.2%, 69% 100%, 61% 99%, 53% 100%,
+    45% 99.2%, 37% 100%, 29% 99.1%, 21% 100%, 13% 99.3%, 5% 100%, 0% 98.9%,
+    .9% 92%, 0% 84%, .8% 76%, 0% 68%, .7% 60%, 0% 52%, .9% 44%, 0% 36%,
+    .8% 28%, 0% 20%, .9% 12%, 0% 6%
+  );
+  /* tilt (desktop mousemove) and the blur-up load-in both animate this
+     element's own transform/filter, on top of whatever .invite-card
+     itself is doing — see js/script.js for both */
+  transition:transform .12s ease-out, filter .7s ease;
+  transform-origin:center center;
+}
+/* Progressive/"blur-up" load: the real artwork starts softly blurred and
+   slightly enlarged (so the blur never reveals a hard edge past the frame)
+   and resolves the instant it finishes decoding — script.js toggles the
+   class on the image's load event (or immediately if already .complete). */
+.card-art.is-loading{
+  filter:blur(18px) drop-shadow(0 10px 22px rgba(0,0,0,.45));
+  transform:scale(1.06);
+}
+@media (prefers-reduced-motion: reduce){
+  .card-art{ transition:filter .01ms linear; }
+}
+/* a small lifted paper corner — a purely decorative "physical object" detail,
+   independent of the card's own rectangular mat/bezel above */
+.card-peel{
+  position:absolute; right:0; bottom:0;
+  width:15%; aspect-ratio:1;
+  z-index:8;
+  clip-path:polygon(100% 100%, 100% 34%, 34% 100%);
+  background:linear-gradient(315deg, #F0DFA0 0%, #C29A24 45%, #6B4E0A 100%);
+  filter:drop-shadow(-3px -3px 5px rgba(0,0,0,.35));
+  pointer-events:none;
 }
 
 /* .seal, .invite-eyebrow, .who, .invite-line, .invite-hosts,

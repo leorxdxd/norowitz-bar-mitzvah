@@ -12,6 +12,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Marcellus&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- both cards are the actual invitation content (not decoration), so
+       they're worth the eager fetch — this gets the browser downloading
+       them before it's even finished parsing the rest of <head> -->
+  <link rel="preload" as="image" href="assets/cards/shabbos-card.png" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/cards/weekday-card.png" fetchpriority="high">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -65,12 +70,22 @@
                  would just double up. The alt text carries the full content
                  for screen readers, since none of it exists as real text
                  in the DOM anymore. -->
-            <div class="invite-card card-a" id="cardA" role="button" tabindex="0" aria-label="Shabbos and weekend celebration invitation — tap to view up close">
-              <img class="card-art" src="assets/cards/shabbos-card.png" alt="With gratitude to Hashem, we are honoured to invite you to join us for the Bar Mitzvah of our dear son, Yehoshua Norowitz. Shabbos Kodesh, Parshas Vayeitzei, the 21st of November. Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York. Shacharis at 8:30 AM, Kiddush following davening. Akiva &amp; Tamar Norowitz.">
+            <div class="invite-card card-a" id="cardA" role="button" tabindex="0" aria-label="Shabbos and weekend celebration invitation — tap to view up close"
+                 data-event-title="Bar Mitzvah of Yehoshua Norowitz — Shacharis &amp; Kiddush"
+                 data-event-start="2026-11-21T08:30:00" data-event-end="2026-11-21T11:30:00"
+                 data-address="Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York"
+                 data-filename="norowitz-bar-mitzvah-shabbos-invitation.png">
+              <img class="card-art is-loading" src="assets/cards/shabbos-card.png" alt="With gratitude to Hashem, we are honoured to invite you to join us for the Bar Mitzvah of our dear son, Yehoshua Norowitz. Shabbos Kodesh, Parshas Vayeitzei, the 21st of November. Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York. Shacharis at 8:30 AM, Kiddush following davening. Akiva &amp; Tamar Norowitz.">
+              <span class="card-peel" aria-hidden="true"></span>
               <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
-            <div class="invite-card card-b" id="cardB" role="button" tabindex="0" aria-label="Weekday celebration invitation — tap to view up close">
-              <img class="card-art" src="assets/cards/weekday-card.png" alt="With so much love and pride, we invite you to join us in celebrating our dear son, Yehoshua Norowitz, on the occasion of his Bar Mitzvah. Wednesday, November 18, 2026, 7:00 PM. Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York. Akiva &amp; Tamar Norowitz. To RSVP, email rsvp@ynbarmitzvah2026.com.">
+            <div class="invite-card card-b" id="cardB" role="button" tabindex="0" aria-label="Weekday celebration invitation — tap to view up close"
+                 data-event-title="Bar Mitzvah of Yehoshua Norowitz — Weekday Celebration"
+                 data-event-start="2026-11-18T19:00:00" data-event-end="2026-11-18T21:00:00"
+                 data-address="Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York"
+                 data-filename="norowitz-bar-mitzvah-weekday-invitation.png">
+              <img class="card-art is-loading" src="assets/cards/weekday-card.png" alt="With so much love and pride, we invite you to join us in celebrating our dear son, Yehoshua Norowitz, on the occasion of his Bar Mitzvah. Wednesday, November 18, 2026, 7:00 PM. Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York. Akiva &amp; Tamar Norowitz. To RSVP, email rsvp@ynbarmitzvah2026.com.">
+              <span class="card-peel" aria-hidden="true"></span>
               <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
             <!-- App-onboarding-style coach mark: a speech-bubble callout with
@@ -172,7 +187,32 @@
   <button class="card-zoom-close" id="cardZoomClose" type="button" aria-label="Close">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
+  <button class="card-zoom-nav prev" id="cardZoomPrev" type="button" aria-label="Previous invitation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button class="card-zoom-nav next" id="cardZoomNext" type="button" aria-label="Next invitation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
   <img class="card-zoom-img" id="cardZoomImg" src="" alt="">
+  <div class="card-zoom-vignette" aria-hidden="true"></div>
+  <div class="card-zoom-dots" id="cardZoomDots" role="tablist" aria-label="Choose invitation">
+    <button class="zoom-dot" data-card="a" role="tab" aria-label="Invitation 1 of 2"></button>
+    <button class="zoom-dot" data-card="b" role="tab" aria-label="Invitation 2 of 2"></button>
+  </div>
+  <div class="card-zoom-actions" id="cardZoomActions">
+    <a class="card-action-btn" id="zoomCalendarLink" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      Add to Calendar
+    </a>
+    <a class="card-action-btn" id="zoomDirectionsLink" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+      Get Directions
+    </a>
+    <a class="card-action-btn" id="zoomSaveLink" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+      Save Image
+    </a>
+  </div>
 </div>
 
 <footer>Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 2026</footer>

@@ -172,17 +172,27 @@ a, button{font-family:inherit;}
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
   z-index:0;
-  /* Found via the same pixel-sampled contrast check as the rest of this
-     pass: at .16 opacity, this giant fixed mark was bright enough
-     (gold-deep's own luminance is ~99, brighter than the page's darkest
-     areas) that wherever a stroke of the "Y"/"N" happened to cross real
-     text — three separate RSVP fields measured ratios of 1.4-3.1 against
-     a 4.5 requirement — it visibly broke contrast, independent of the
-     page gradient itself (a fixed sibling layer, unaffected by tuning
-     body::before). Dropped low enough that it can no longer swing the
-     background enough to matter, while still being faintly present. */
+  /* This was dropped to .06 (from .16) back when the mark itself was a
+     recreated "YN" in blocky Marcellus letters — thick enough, and the
+     RSVP fields sat directly on the flat page back then (no card behind
+     them yet), that three fields measured contrast ratios of 1.4-3.1
+     against a 4.5 requirement wherever a stroke crossed real text.
+     Neither condition holds anymore: the mark is now the client's real
+     logo art (assets/logo-yn-mark.png), a much thinner calligraphic line
+     with far less actual ink coverage, AND every place text used to sit
+     directly on the flat page near this risk (the RSVP fields) now sits
+     on .rsvp-inner's own opaque foil-card background instead, which
+     fully hides this fixed layer behind it regardless of scroll
+     position. Raised back up and re-verified the same way: pixel-sampled
+     a genuine background gap between letters (not a glyph edge — that
+     reads as near-the-text's-own-colour and is a false failure, the
+     exact mistake this project's contrast tooling was built to avoid)
+     where the mark visibly crosses "BAR MITZVAH" in the hero at this
+     opacity, and it holds at 8:1, comfortably clear of the 4.5
+     requirement — plus a direct visual check that the letters themselves
+     stay crisp at 6x zoom. */
   color:var(--gold-deep);
-  opacity:.06;
+  opacity:.14;
   user-select:none;
 }
 /* replaces the old font-size-driven sizing now that the mark is

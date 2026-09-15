@@ -1382,6 +1382,25 @@ body.zoom-locked{ overflow:hidden; }
   width:100%; max-width:480px; text-align:center;
   opacity:0; transform:translateY(28px);
   transition:opacity 1s ease, transform 1s cubic-bezier(.22,.68,0,1.03);
+  /* the RSVP block is now framed as its own card resting on the gold page
+     — the exact foil sweep/bevel .invite-card uses, so it reads as part
+     of the same physical "set" as the two invitations above it rather
+     than a plain web form floating on the background. --ink/--ink-soft
+     (this page's text colours) were already tuned for a dark surface —
+     that's the whole reason they read as light champagne — so nothing
+     inside needed recolouring for this. */
+  padding:2.6rem 1.8rem 2.2rem;
+  border-radius:6px;
+  background:
+    linear-gradient(160deg, rgba(255,241,208,.35) 0%, rgba(255,241,208,0) 11%),
+    linear-gradient(152deg,
+      #E7C468 0%, #C29A24 11%, #8A6A0F 24%, #4E3805 38%,
+      #1E1200 52%, #0F0800 62%, #241704 75%, #3B2A08 88%, #52400E 100%);
+  border:1px solid var(--paper-edge);
+  box-shadow:
+    0 30px 60px -20px var(--shadow), 0 0 46px -14px var(--glow),
+    inset 0 0 0 1px rgba(255,238,196,.22),
+    inset 0 0 26px 4px rgba(0,0,0,.4);
 }
 .rsvp-inner.is-visible{ opacity:1; transform:translateY(0); }
 .rsvp-monogram{
@@ -1419,16 +1438,57 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
   margin-bottom:.5rem;
 }
-.field input, .field textarea{
+.field input{
   width:100%; border:none; border-bottom:1px solid var(--line);
   background:transparent; font-family:'Cormorant Garamond', serif;
   font-size:1.15rem; color:var(--ink); padding:.4rem 0;
 }
-.field input:focus, .field textarea:focus, .field input:focus-visible{
+.field input:focus, .field input:focus-visible{
   outline:none;
 }
-.field textarea{ resize:vertical; min-height:3rem; }
-.field input::placeholder, .field textarea::placeholder{ color:var(--ink-soft); opacity:.55; }
+.field input::placeholder{ color:var(--ink-soft); opacity:.55; }
+
+/* ---------- guest-count stepper ---------- */
+/* replaces the plain <input type=number>'s native up/down spinner, which
+   renders inconsistently (and looks distinctly un-premium) across
+   browsers — the number itself is still a real, readable input; only the
+   spinner affordance is swapped for two round buttons matching the site's
+   existing pill/badge language. */
+.stepper{ display:flex; align-items:center; gap:1rem; }
+.stepper input{
+  width:2.6rem; flex:none; text-align:center;
+  -moz-appearance:textfield;
+}
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button{
+  -webkit-appearance:none; margin:0;
+}
+.stepper-btn{
+  width:34px; height:34px; flex:none; border-radius:50%;
+  border:1px solid var(--gold); background:transparent; color:var(--ink);
+  font-family:'Jost', sans-serif; font-size:1.1rem; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease, transform .15s ease, border-color .2s ease;
+}
+.stepper-btn:hover{ background:var(--gold); color:var(--paper); }
+.stepper-btn:active{ transform:scale(.92); }
+.stepper-btn:focus-visible{ outline:2px solid var(--gold-light); outline-offset:2px; }
+.stepper-btn:disabled{ opacity:.35; cursor:default; background:transparent; color:var(--ink); }
+
+/* ---------- dynamic per-guest name inputs ---------- */
+/* one input per guest (count-driven, see js/script.js) instead of a
+   single open textarea — names come back as tidy, individually-readable
+   fields rather than one guest typing all of them into a wall of text in
+   whatever format they feel like. */
+.guest-names{ display:flex; flex-direction:column; gap:.9rem; }
+.guest-name-input{
+  width:100%; border:none; border-bottom:1px solid var(--line);
+  background:transparent; font-family:'Cormorant Garamond', serif;
+  font-size:1.05rem; color:var(--ink); padding:.35rem 0;
+}
+.guest-name-input:focus, .guest-name-input:focus-visible{ outline:none; }
+.guest-name-input::placeholder{ color:var(--ink-soft); opacity:.55; }
 /* the underline grows out from center on focus, instead of an instant
    swap — light gold now, matching the page's overall light-on-dark-gold
    scheme (a dark line here would repeat the same near-invisible problem
@@ -1441,6 +1501,34 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   pointer-events:none;
 }
 .field:focus-within::after{ left:0; right:0; }
+
+/* real-time validation feedback, surfaced before a failed submit rather
+   than only after. First attempt here was a plain light coral (like
+   .form-error below), reasoned to hold up across .rsvp-inner's gradient
+   the same way the original card-face text did with a text-shadow — but
+   actually MEASURED (pixel-sampled bg + WCAG relative-luminance math, not
+   eyeballed) at only 2.89:1 against a 4.5 requirement wherever a field
+   near the gradient's bright corner (the family-name field, being first,
+   sits closest) got flagged invalid. A text-shadow isn't real insurance
+   against a genuinely bright background the way it is against a merely
+   busy one — same lesson this project already learned once before: give
+   it its OWN small dark surface instead of trying to find one flat colour
+   that survives the whole bright-to-near-black sweep, the same "dark
+   plaque" language already used for the checked attend-toggle pill. */
+.field-msg{
+  display:inline-block; max-height:0; overflow:hidden;
+  font-family:'Jost', sans-serif; font-size:.7rem; color:#FFAB91;
+  background:rgba(15,9,0,.8);
+  padding:0 .5rem; border-radius:3px;
+  transition:max-height .25s ease, margin-top .25s ease, opacity .25s ease, padding .25s ease;
+  opacity:0;
+}
+.field.is-invalid .field-msg{ max-height:1.6em; margin-top:.35rem; padding:.2rem .5rem; opacity:1; }
+/* the underline alone (no dark plaque of its own, being a 1px line) isn't
+   held to the same text-contrast bar, but darkening it rather than
+   lightening it is still the safer direction against a background that
+   swings this bright at one end */
+.field.is-invalid::after{ background:#B33F1F; left:0; right:0; }
 
 /* Unchecked state is a plain light-gold outline (matches every other
    text/line on this now-dark page); checked state stays a dark filled
@@ -1459,8 +1547,22 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   border-radius:999px; color:var(--ink-soft); cursor:pointer;
   transition:background .25s ease, color .25s ease;
 }
-.attend-toggle input:checked + label{ background:var(--ink-dark); color:var(--gold-light); border-color:var(--ink-dark); }
+/* :checked is a real state change the browser tracks on its own — no JS
+   class-toggling needed — so a plain CSS animation on the selector
+   restarts cleanly every time a guest actually switches their answer
+   (and once, harmlessly, on page load for the pre-checked "Accept"). */
+.attend-toggle input:checked + label{
+  background:var(--ink-dark); color:var(--gold-light); border-color:var(--ink-dark);
+  animation:pill-select-pulse .5s ease-out;
+}
 .attend-toggle input:focus-visible + label{ outline:2px solid var(--gold-light); outline-offset:2px; }
+@keyframes pill-select-pulse{
+  0%{ box-shadow:0 0 0 0 rgba(240,223,160,.55); }
+  100%{ box-shadow:0 0 0 12px rgba(240,223,160,0); }
+}
+@media (prefers-reduced-motion: reduce){
+  .attend-toggle input:checked + label{ animation:none; }
+}
 
 /* grid-rows 1fr/0fr animates to the content's real height, no max-height
    guess to snap against or leave a gap under */
@@ -1505,10 +1607,16 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 
 .form-error{
   font-family:'Jost', sans-serif; font-size:.78rem; letter-spacing:.02em;
-  /* deepened from a coral (#E08A75, tuned to pop against a dark page) to
-     a burnt terracotta — the coral read as too pale/washed-out against
-     the new light gold page to still register as an error */
-  color:#8B3A1F; text-align:center; margin-top:-.4rem;
+  /* This was deepened once already to a dark burnt terracotta (#8B3A1F)
+     when the page itself was flat light gold — but .rsvp-inner is now its
+     own dark foil card (see above), and #8B3A1F is a near-black-on-dark
+     mistake there, the exact contrast bug this project already learned
+     from once on the page background itself. Back to a LIGHT coral (same
+     one .field-msg uses, tuned for this same gradient) plus a text-shadow
+     for the same reason the original card-face text needed one on this
+     gradient: it swings from bright brass to near-black corner to corner. */
+  color:#FFAB91; text-shadow:0 1px 2px rgba(0,0,0,.6);
+  text-align:center; margin-top:-.4rem;
 }
 
 #rsvpForm{ transition:opacity .5s ease, transform .5s ease; }
@@ -1529,6 +1637,33 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
 @keyframes draw-in{ to{ stroke-dashoffset:0; } }
 .confirm-title{ font-size:1.6rem; margin-top:.4rem; }
 .rsvp-confirm p.sub{ color:var(--ink-soft); font-style:italic; }
+
+/* both real events, since a guest confirming here may be going to either
+   or both — same Calendar/Directions actions already built for the card
+   zoom lightbox, reused at a smaller size (.card-action-btn.small) */
+.confirm-events{
+  width:100%; display:flex; flex-direction:column; gap:1rem;
+  margin-top:1.4rem; padding-top:1.2rem;
+  border-top:1px solid var(--line);
+}
+.confirm-event-label{
+  font-family:'Jost', sans-serif; font-size:.7rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-soft); margin:0 0 .55rem;
+}
+.confirm-event-actions{ display:flex; justify-content:center; gap:.6rem; flex-wrap:wrap; }
+.card-action-btn.small{ padding:7px 13px; font-size:.72rem; }
+.card-action-btn.small svg{ width:14px; height:14px; }
+
+.edit-rsvp-link{
+  margin-top:1.6rem;
+  background:none; border:none; padding:0; cursor:pointer;
+  font-family:'Jost', sans-serif; font-size:.75rem; letter-spacing:.06em;
+  color:var(--ink-soft); text-decoration:underline;
+  text-underline-offset:3px;
+  transition:color .2s ease;
+}
+.edit-rsvp-link:hover, .edit-rsvp-link:focus-visible{ color:var(--gold-light); }
+.edit-rsvp-link:focus-visible{ outline:2px solid var(--gold-light); outline-offset:3px; }
 
 footer{
   position:relative; z-index:3;

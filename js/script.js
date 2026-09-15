@@ -298,17 +298,27 @@
   function cardKey(card){ return card === cardA ? 'a' : 'b'; }
   function cardForKey(key){ return key === 'a' ? cardA : cardB; }
   function toGCalStamp(iso){ return iso.replace(/[-:]/g, ''); }
-  function syncZoomChrome(card){
-    var key = cardKey(card);
-    zoomDots.forEach(function(dot){ dot.classList.toggle('is-active', dot.dataset.card === key); });
+  // shared by the zoom lightbox's own action bar AND the RSVP confirmation
+  // screen below — both build the exact same two links from the same
+  // per-card data-* attributes, so there's one place that knows the URL
+  // formats instead of two copies drifting apart.
+  function buildCalendarUrl(card){
     var params = 'action=TEMPLATE'
       + '&text=' + encodeURIComponent(card.dataset.eventTitle)
       + '&dates=' + toGCalStamp(card.dataset.eventStart) + '/' + toGCalStamp(card.dataset.eventEnd)
       + '&details=' + encodeURIComponent('Bar Mitzvah of Yehoshua Norowitz. RSVP: rsvp@ynbarmitzvah2026.com')
       + '&location=' + encodeURIComponent(card.dataset.address)
       + '&ctz=America/New_York';
-    zoomCalendarLink.href = 'https://www.google.com/calendar/render?' + params;
-    zoomDirectionsLink.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(card.dataset.address);
+    return 'https://www.google.com/calendar/render?' + params;
+  }
+  function buildDirectionsUrl(card){
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(card.dataset.address);
+  }
+  function syncZoomChrome(card){
+    var key = cardKey(card);
+    zoomDots.forEach(function(dot){ dot.classList.toggle('is-active', dot.dataset.card === key); });
+    zoomCalendarLink.href = buildCalendarUrl(card);
+    zoomDirectionsLink.href = buildDirectionsUrl(card);
     var art = card.querySelector('.card-art');
     zoomSaveLink.href = art.src;
     zoomSaveLink.download = card.dataset.filename || 'invitation.png';
@@ -421,6 +431,16 @@
   // and trigger its reveal/open animation along the way.
   document.getElementById('rsvpPill').addEventListener('click', function(){
     document.getElementById('rsvp').scrollIntoView({behavior: 'auto', block:'start'});
+    // straight into the first field, so a guest who came here specifically
+    // to RSVP can start typing immediately — but only if the form is the
+    // thing actually showing (a returning guest sees the confirmation
+    // screen instead, see restorePreviousRsvp below; focusing a field
+    // that's position:absolute + hidden behind it would do nothing useful
+    // and could itself trigger an unwanted scroll).
+    var famField = document.getElementById('fam');
+    if(!document.getElementById('rsvpForm').classList.contains('gone')){
+      famField.focus({preventScroll: true});
+    }
   });
 
   // ---------- attending toggle shows/hides guest fields ----------
@@ -434,6 +454,80 @@
   attendNo.addEventListener('change', syncAttending);
   syncAttending();
 
+  // ---------- guest-count stepper + dynamic per-guest name inputs ----------
+  var countInput = document.getElementById('count');
+  var countMinus = document.getElementById('countMinus');
+  var countPlus = document.getElementById('countPlus');
+  var guestNames = document.getElementById('guestNames');
+  var COUNT_MIN = Number(countInput.min) || 1;
+  var COUNT_MAX = Number(countInput.max) || 10;
+
+  function clampCount(n){
+    n = Math.round(n);
+    if(isNaN(n)) n = COUNT_MIN;
+    return Math.min(Math.max(n, COUNT_MIN), COUNT_MAX);
+  }
+  // Regenerates the guest-name inputs to match the current count — rebuilt
+  // from scratch each time (simpler than diffing add/remove), but existing
+  // values are read out first and reapplied by index so raising, then
+  // lowering, the count doesn't lose what someone already typed.
+  function syncGuestNameFields(){
+    var count = clampCount(Number(countInput.value) || COUNT_MIN);
+    var existing = Array.prototype.slice.call(guestNames.querySelectorAll('.guest-name-input'))
+      .map(function(inp){ return inp.value; });
+    guestNames.innerHTML = '';
+    for(var i = 0; i < count; i++){
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'guest-name-input';
+      inp.placeholder = 'Guest ' + (i + 1) + ' name';
+      inp.autocomplete = 'name';
+      if(existing[i]) inp.value = existing[i];
+      guestNames.appendChild(inp);
+    }
+    countMinus.disabled = count <= COUNT_MIN;
+    countPlus.disabled = count >= COUNT_MAX;
+  }
+  function setCount(n){
+    countInput.value = clampCount(n);
+    syncGuestNameFields();
+  }
+  countMinus.addEventListener('click', function(){ setCount(Number(countInput.value) - 1); });
+  countPlus.addEventListener('click', function(){ setCount(Number(countInput.value) + 1); });
+  countInput.addEventListener('change', function(){ setCount(Number(countInput.value)); });
+  syncGuestNameFields();
+
+  // ---------- inline field validation ----------
+  // Surfaced on blur (and live once a field has already been flagged),
+  // not on every keystroke from a clean state — nagging a guest before
+  // they've even finished typing their own name is worse than the
+  // generic form-level error this used to fall back to alone.
+  var famInput = document.getElementById('fam');
+  var famField = famInput.closest('.field');
+  var famMsg = document.getElementById('famMsg');
+  var emailInput = document.getElementById('email');
+  var emailField = emailInput.closest('.field');
+  var emailMsg = document.getElementById('emailMsg');
+
+  function validateFam(){
+    var ok = famInput.value.trim().length > 0;
+    famField.classList.toggle('is-invalid', !ok);
+    famMsg.textContent = ok ? '' : 'Please let us know who this RSVP is for.';
+    return ok;
+  }
+  function validateEmail(){
+    // optional field — only flagged once something is typed and it's malformed
+    var val = emailInput.value.trim();
+    var ok = val === '' || emailInput.checkValidity();
+    emailField.classList.toggle('is-invalid', !ok);
+    emailMsg.textContent = ok ? '' : 'That doesn’t look like a valid email address.';
+    return ok;
+  }
+  famInput.addEventListener('blur', validateFam);
+  emailInput.addEventListener('blur', validateEmail);
+  famInput.addEventListener('input', function(){ if(famField.classList.contains('is-invalid')) validateFam(); });
+  emailInput.addEventListener('input', function(){ if(emailField.classList.contains('is-invalid')) validateEmail(); });
+
   // ---------- rsvp submit (saved to a Google Sheet) ----------
   var configured = window.GOOGLE_SCRIPT_URL && window.GOOGLE_SCRIPT_URL.indexOf('YOUR_') !== 0;
   if(!configured){
@@ -444,37 +538,91 @@
   var confirm = document.getElementById('rsvpConfirm');
   var submitBtn = document.getElementById('submitBtn');
   var formError = document.getElementById('formError');
+  var editRsvpLink = document.getElementById('editRsvpLink');
+  var RSVP_STORAGE_KEY = 'norowitz_bar_mitzvah_rsvp_2026';
+
+  // Add to Calendar / Get Directions for BOTH real events, not just
+  // whichever card a guest happened to zoom into — a guest confirming
+  // here may be going to either or both. Built once from the same
+  // per-card data-* attributes the zoom lightbox's own actions use (see
+  // buildCalendarUrl/buildDirectionsUrl above), so there's one source of
+  // truth for each event's date/time/address.
+  document.getElementById('confirmCalendarA').href = buildCalendarUrl(cardA);
+  document.getElementById('confirmDirectionsA').href = buildDirectionsUrl(cardA);
+  document.getElementById('confirmCalendarB').href = buildCalendarUrl(cardB);
+  document.getElementById('confirmDirectionsB').href = buildDirectionsUrl(cardB);
+
+  function collectGuestNames(){
+    return Array.prototype.slice.call(guestNames.querySelectorAll('.guest-name-input'))
+      .map(function(inp){ return inp.value.trim(); })
+      .filter(Boolean)
+      .join(', ');
+  }
+  function gatherPayload(){
+    var attending = attendYes.checked;
+    return {
+      family_name: famInput.value.trim(),
+      attending: attending,
+      guest_count: attending ? clampCount(Number(countInput.value) || 1) : 0,
+      guest_names: attending ? collectGuestNames() : '',
+      email: emailInput.value.trim()
+    };
+  }
+  // Reverse of gatherPayload — used both to restore a guest's own earlier
+  // RSVP on return, and by "Edit your RSVP" to bring the form back with
+  // what they already answered instead of a blank one.
+  function prefillForm(data){
+    famInput.value = data.family_name || '';
+    attendYes.checked = data.attending !== false;
+    attendNo.checked = data.attending === false;
+    syncAttending();
+    setCount(data.guest_count || 1);
+    emailInput.value = data.email || '';
+    var names = (data.guest_names || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    var inputs = guestNames.querySelectorAll('.guest-name-input');
+    inputs.forEach(function(inp, i){ if(names[i]) inp.value = names[i]; });
+  }
+
+  function showConfirmation(payload){
+    form.classList.add('gone');
+    setTimeout(function(){
+      confirm.classList.add('shown');
+      // timed to land right as the checkmark finishes drawing itself in
+      // (see .confirm-check's own draw-in keyframes: circle 0.15s-0.85s,
+      // check-mark 0.65s-1.1s, relative to .shown being added)
+      setTimeout(function(){
+        var r = document.querySelector('.confirm-check').getBoundingClientRect();
+        burstSparkles(r.left + r.width / 2, r.top + r.height / 2);
+      }, 1050);
+    }, 250);
+    try{ localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify(payload)); }catch(e){}
+  }
+  function showError(message){
+    submitBtn.disabled = false;
+    submitBtn.querySelector('span').textContent = 'Submit RSVP';
+    formError.textContent = message;
+    formError.hidden = false;
+  }
 
   form.addEventListener('submit', function(e){
     e.preventDefault();
     formError.hidden = true;
 
-    var attending = attendYes.checked;
-    var payload = {
-      family_name: document.getElementById('fam').value.trim(),
-      attending: attending,
-      guest_count: attending ? Number(document.getElementById('count').value) || 1 : 0,
-      guest_names: attending ? document.getElementById('names').value.trim() : '',
-      email: document.getElementById('email').value.trim()
-    };
+    var famOk = validateFam();
+    var emailOk = validateEmail();
+    if(!famOk || !emailOk){
+      (famOk ? emailInput : famInput).focus();
+      return;
+    }
+
+    var payload = gatherPayload();
 
     submitBtn.disabled = true;
     submitBtn.querySelector('span').textContent = 'Submitting…';
 
-    function showConfirmation(){
-      form.classList.add('gone');
-      setTimeout(function(){ confirm.classList.add('shown'); }, 250);
-    }
-    function showError(message){
-      submitBtn.disabled = false;
-      submitBtn.querySelector('span').textContent = 'Submit RSVP';
-      formError.textContent = message;
-      formError.hidden = false;
-    }
-
     if(!configured){
       // Not wired to a sheet yet — still let the flow demo cleanly.
-      setTimeout(showConfirmation, 400);
+      setTimeout(function(){ showConfirmation(payload); }, 400);
       return;
     }
 
@@ -489,7 +637,7 @@
       return res.json();
     }).then(function(data){
       if(data && data.result === 'success'){
-        showConfirmation();
+        showConfirmation(payload);
       } else {
         showError("Something went wrong sending your RSVP — please try again.");
         console.error(data);
@@ -499,4 +647,25 @@
       console.error(err);
     });
   });
+
+  editRsvpLink.addEventListener('click', function(){
+    confirm.classList.remove('shown');
+    form.classList.remove('gone');
+    submitBtn.disabled = false;
+    submitBtn.querySelector('span').textContent = 'Submit RSVP';
+    famInput.focus();
+  });
+
+  // A returning guest sees their own previous answer already filled in
+  // and confirmed instead of a blank form every time — "Edit your RSVP"
+  // above is what gets them back into it to change anything. Per-browser
+  // only (localStorage), not synced across a guest's devices.
+  (function restorePreviousRsvp(){
+    var saved;
+    try{ saved = JSON.parse(localStorage.getItem(RSVP_STORAGE_KEY)); }catch(e){ saved = null; }
+    if(!saved) return;
+    prefillForm(saved);
+    form.classList.add('gone');
+    confirm.classList.add('shown');
+  })();
 })();

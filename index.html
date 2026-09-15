@@ -126,10 +126,11 @@
       <h2>We look forward to celebrating with you.</h2>
       <p class="rsvp-email-note">Prefer email? Write to <a href="mailto:rsvp@ynbarmitzvah2026.com">rsvp@ynbarmitzvah2026.com</a></p>
 
-      <form id="rsvpForm">
+      <form id="rsvpForm" novalidate>
         <div class="field" style="--d:0">
           <label for="fam">Guest / Family Name</label>
           <input id="fam" name="fam" type="text" required autocomplete="name">
+          <span class="field-msg" id="famMsg" aria-live="polite"></span>
         </div>
 
         <div class="field" style="--d:1">
@@ -146,15 +147,20 @@
           <div class="fields-inner">
             <div class="field" style="--d:2">
               <label for="count">Number of Guests</label>
-              <input id="count" name="count" type="number" min="1" max="10" value="1">
+              <div class="stepper">
+                <button type="button" class="stepper-btn" id="countMinus" aria-label="Decrease guest count">&minus;</button>
+                <input id="count" name="count" type="number" min="1" max="10" value="1" inputmode="numeric">
+                <button type="button" class="stepper-btn" id="countPlus" aria-label="Increase guest count">+</button>
+              </div>
             </div>
             <div class="field" style="--d:3">
-              <label for="names">Guest Names</label>
-              <textarea id="names" name="names" placeholder="First &amp; last name of each guest"></textarea>
+              <label>Guest Names</label>
+              <div class="guest-names" id="guestNames"></div>
             </div>
             <div class="field" style="--d:4">
               <label for="email">Email (optional, for confirmation)</label>
               <input id="email" name="email" type="email" autocomplete="email">
+              <span class="field-msg" id="emailMsg" aria-live="polite"></span>
             </div>
           </div>
         </div>
@@ -173,6 +179,43 @@
         <div class="rsvp-monogram yn-mark">YN</div>
         <p class="confirm-title">Thank you.</p>
         <p class="sub">We look forward to celebrating together.</p>
+
+        <!-- Both real events, not just whichever card a guest happened to
+             zoom into earlier — a guest may be RSVPing for either or both,
+             so the same quick actions built for the cards' lightbox are
+             offered again here, read straight from #cardA/#cardB's own
+             data-* attributes (see js/script.js) so there's one source of
+             truth for each event's date/time/address. -->
+        <div class="confirm-events" id="confirmEvents">
+          <div class="confirm-event">
+            <p class="confirm-event-label">Shabbos Celebration &middot; Nov 21</p>
+            <div class="confirm-event-actions">
+              <a class="card-action-btn small" id="confirmCalendarA" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+                Calendar
+              </a>
+              <a class="card-action-btn small" id="confirmDirectionsA" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+                Directions
+              </a>
+            </div>
+          </div>
+          <div class="confirm-event">
+            <p class="confirm-event-label">Weekday Celebration &middot; Nov 18</p>
+            <div class="confirm-event-actions">
+              <a class="card-action-btn small" id="confirmCalendarB" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+                Calendar
+              </a>
+              <a class="card-action-btn small" id="confirmDirectionsB" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+                Directions
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="edit-rsvp-link" id="editRsvpLink">Edit your RSVP</button>
       </div>
     </div>
   </section>

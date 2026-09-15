@@ -172,8 +172,6 @@ a, button{font-family:inherit;}
   display:flex; align-items:center; justify-content:center;
   pointer-events:none;
   z-index:0;
-  font-family:'Marcellus', serif;
-  font-size:clamp(9rem, 42vw, 26rem);
   /* Found via the same pixel-sampled contrast check as the rest of this
      pass: at .16 opacity, this giant fixed mark was bright enough
      (gold-deep's own luminance is ~99, brighter than the page's darkest
@@ -185,9 +183,11 @@ a, button{font-family:inherit;}
      background enough to matter, while still being faintly present. */
   color:var(--gold-deep);
   opacity:.06;
-  letter-spacing:.02em;
   user-select:none;
 }
+/* replaces the old font-size-driven sizing now that the mark is
+   assets/logo-yn-mark.png painted via .yn-mark::before (see that rule) */
+.watermark.yn-mark::before{ width:clamp(9rem, 42vw, 26rem); }
 
 /* faint grain so the gold ground reads as a lit material, not a flat
    fill — overlay (not screen, which only ever brightens) works both ways
@@ -646,23 +646,38 @@ section{
   background:radial-gradient(circle at 32% 30%, var(--gold-light), var(--gold) 55%, var(--gold-deep) 100%);
   border:1px solid var(--gold-deep);
   display:flex; align-items:center; justify-content:center;
-  font-size:1.05rem; color:var(--paper);
+  color:var(--paper);
   /* the ring uses a literal dark colour, NOT var(--ivory) — that token is
      now the page's gold ground, but this seal sits on the dark envelope
      flap, a different surface entirely; its ring has to match THAT. */
   box-shadow:0 6px 14px -6px var(--shadow), inset 0 0 0 3px rgba(255,255,255,.14),
              0 0 0 3px #2C1C01, 0 0 0 4px var(--gold-deep);
 }
+.wax-seal.yn-mark::before{ width:64%; }
 
-/* ---------- YN monogram — the site's logo mark ---------- */
-/* Tightened into a real interlocking lockup (negative tracking + a thin
-   crest hairline between the two letters) rather than plain spaced-out
-   "YN" text, reused everywhere the mark appears: both card seals, the
-   envelope's wax seal, the watermark and the RSVP badge. */
+/* ---------- YN monogram — the site's real logo mark ---------- */
+/* This used to be a CSS-recreated "YN" lockup (Marcellus letters + a fake
+   crest hairline). The client's actual monogram — a calligraphic
+   interlocking Y/N with its own crest stroke already built in — is now
+   assets/logo-yn-mark.png, reused everywhere the mark appears (both card
+   seals, the envelope's wax seal, the watermark, the RSVP badge). That
+   source file arrived as a flat white background with barely-visible
+   near-white ink (RGB ~239-255, no transparency) — exactly how it's
+   printed as a background watermark on the real invitation card art — so
+   it was re-encoded as a proper alpha PNG (white ink, level-stretched
+   luminance -> alpha, background -> fully transparent) rather than used
+   as-is. That makes it usable as a CSS mask: `background-color` paints
+   the shape, so one file can be tinted differently per context (dark ink
+   on the gold seals, faint gold on the page) instead of needing a
+   separate export per colour. */
 .yn-mark{
   position:relative;
-  font-family:'Marcellus', serif;
-  letter-spacing:-.06em;
+  /* the literal "YN" text node in the markup is kept (harmless, and it's
+     still meaningful fallback content for a screen reader) but visually
+     replaced by the ::before mask below — font-size:0 collapses only the
+     glyphs, not this element's own box, which the mask needs sized via
+     width/aspect-ratio (below) rather than text metrics. */
+  font-size:0;
 }
 /* .watermark already declares position:fixed (needed to pin it as a true
    full-viewport background layer), but .yn-mark's position:relative has
@@ -672,13 +687,23 @@ section{
    every section (hero included) down by that much. Two classes beats one,
    so this wins regardless of source order — the fix that actually holds. */
 .watermark.yn-mark{ position:fixed; }
-.yn-mark::after{
+.yn-mark::before{
   content:'';
   position:absolute; left:50%; top:50%;
-  width:1px; height:.85em;
-  background:currentColor;
-  opacity:.55;
   transform:translate(-50%,-50%);
+  width:60%;
+  aspect-ratio:402/486; /* the source artwork's real proportions */
+  -webkit-mask-image:url('../assets/logo-yn-mark.png');
+  mask-image:url('../assets/logo-yn-mark.png');
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+  -webkit-mask-size:contain; mask-size:contain;
+  -webkit-mask-mode:alpha; mask-mode:alpha;
+  /* each context already sets its own `color` correctly (gold on the
+     page, dark ink on the bright gold seals) — reusing it via
+     currentColor means one rule works everywhere without a second,
+     parallel set of colour overrides to keep in sync. */
+  background-color:currentColor;
 }
 /* the seal "cracks" the instant the envelope opens, just before it fades
    away with the flap — a small narrative beat, not just a disappearance */
@@ -1367,11 +1392,12 @@ body.zoom-locked{ overflow:hidden; }
      the only thing left defining its edge */
   border:1.5px solid var(--ink-dark);
   display:flex; align-items:center; justify-content:center;
-  font-size:1.55rem; color:var(--paper);
+  color:var(--paper);
   box-shadow:0 6px 14px -6px rgba(42,27,3,.5), inset 0 0 0 3px rgba(255,255,255,.14),
              0 0 0 3px var(--ivory), 0 0 0 4px var(--ink-dark);
   margin:0 auto 1rem;
 }
+.rsvp-monogram.yn-mark::before{ width:60%; }
 .rsvp h2{
   font-size:clamp(1.5rem,4.4vw,2.1rem);
   margin-bottom:1.4rem;

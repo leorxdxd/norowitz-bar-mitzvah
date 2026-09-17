@@ -35,35 +35,48 @@
   tick();
   setInterval(tick, 1000);
 
-  // ---------- scroll progress bar ----------
+  // ---------- scroll progress bar + hero fade on scroll ----------
   // A faint always-visible sense of how far through the experience a
-  // guest is, without needing a nav bar to explain "you are here."
+  // guest is (progress bar), and fading the hero out (and fully hiding
+  // it) well before the invitation stage can appear, so the countdown
+  // never visually overlaps the envelope during the handoff between the
+  // two sticky-scroll sections.
+  // Both used to run directly off the 'scroll' event with no throttling
+  // — a native scroll (especially inertial/trackpad scrolling, or touch)
+  // can fire this many times faster than the screen can actually repaint,
+  // and each firing did a synchronous read (scrollY/offsetHeight) plus
+  // multiple style writes. Coalesced through requestAnimationFrame so any
+  // burst of scroll events between two paints becomes exactly one update
+  // — the same fix already applied to the card tilt-follow's mousemove,
+  // and the more likely of the two to have actually been the "laggy"
+  // culprit, since this one runs on every single scroll on the page,
+  // not just while hovering a settled card.
   var progressFill = document.getElementById('progressFill');
-  function onScrollProgress(){
-    var scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    var pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
-    progressFill.style.width = Math.min(Math.max(pct, 0), 100) + '%';
-  }
-  window.addEventListener('scroll', onScrollProgress, {passive:true});
-  window.addEventListener('resize', onScrollProgress);
-  onScrollProgress();
-
-  // ---------- hero fade on scroll ----------
-  // Fades (and fully hides) well before the invitation stage can appear,
-  // so the countdown never visually overlaps the envelope during the
-  // handoff between the two sticky-scroll sections.
   var heroInner = document.getElementById('heroInner');
   var hero = document.getElementById('hero');
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function onScroll(){
+  function updateScrollEffects(){
+    var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+    progressFill.style.width = Math.min(Math.max(pct, 0), 100) + '%';
+
     var h = hero.offsetHeight || window.innerHeight;
     var p = Math.min(Math.max(window.scrollY / (h*0.5), 0), 1);
     heroInner.style.opacity = String(1-p);
     heroInner.style.transform = 'translateY(' + (-p*36) + 'px)';
     heroInner.style.visibility = p >= 1 ? 'hidden' : 'visible';
   }
-  window.addEventListener('scroll', onScroll, {passive:true});
-  onScroll();
+  var scrollRAF = null;
+  function onScrollThrottled(){
+    if(scrollRAF) return;
+    scrollRAF = requestAnimationFrame(function(){
+      scrollRAF = null;
+      updateScrollEffects();
+    });
+  }
+  window.addEventListener('scroll', onScrollThrottled, {passive:true});
+  window.addEventListener('resize', onScrollThrottled);
+  updateScrollEffects();
 
   // ---------- scroll-cue button: an easy way in for anyone unsure they
   // should scroll (or unable to scroll precisely) ----------

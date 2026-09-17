@@ -330,7 +330,16 @@ section{
   background-position:160% 0;
   -webkit-background-clip:text; background-clip:text;
   -webkit-text-fill-color:transparent;
-  animation:name-shimmer 7s ease-in-out 2.4s infinite;
+  /* capped at 6 plays (~44s including the initial delay), not infinite —
+     background-position is a paint-inducing property (no GPU-compositor
+     fast path the way transform/opacity get), and background-clip:text
+     makes each repaint of it more expensive still, so running this
+     forever meant paying that cost for the entire time a guest sits on
+     the page, long after anyone still has their eyes on the hero
+     specifically (e.g. while filling out the RSVP form further down).
+     Ends back at its own resting background-position (160% 0, i.e. fully
+     off-screen / plain flat ink), not a mid-sweep freeze-frame. */
+  animation:name-shimmer 7s ease-in-out 2.4s 6;
 }
 @keyframes name-shimmer{
   0%, 55%{ background-position:160% 0; }
@@ -1022,7 +1031,13 @@ section{
    what keeps the resting cards feeling like metal rather than a printed
    flat image once the reveal itself is long over */
 .invite-card.is-out:not(.is-rising)::before{
-  animation:sheen-ambient 9s ease-in-out 1s infinite;
+  /* same reasoning as .hero h1's shimmer above: capped at 6 plays rather
+     than infinite, since this is another background-position animation
+     (no compositor fast path) that has no reason to keep costing
+     anything once a guest has scrolled on past the cards entirely. Ends
+     back at opacity:0 (the pseudo-element's own resting state), not a
+     visible freeze-frame. */
+  animation:sheen-ambient 9s ease-in-out 1s 6;
 }
 @keyframes sheen-ambient{
   0%, 40%{ background-position:140% 0; opacity:0; }

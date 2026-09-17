@@ -72,6 +72,20 @@
      term and never got near 460 to begin with), only wide/tall viewports
      get to actually use the room they have. */
   --env-w: clamp(260px, min(86vw, 62svh), 680px);
+  /* the real card artwork's torn/deckle edge shape — shared between
+     .card-art (clips the actual image) and .card-texture (a paper-fiber
+     overlay that has to match the same silhouette exactly, or the
+     texture would spill past the artwork's own notched border) */
+  --deckle-clip: polygon(
+    0% 1.2%, 3% 0%, 9% 1%, 15% .2%, 22% 1.1%, 29% 0%, 37% .8%, 44% 0%,
+    52% 1%, 60% .1%, 68% 1.2%, 76% 0%, 84% .9%, 92% 0%, 100% 1%,
+    100% 2%, 99.1% 8%, 100% 15%, 99.2% 23%, 100% 31%, 99.3% 40%, 100% 49%,
+    99.1% 58%, 100% 67%, 99.4% 76%, 100% 85%, 99.2% 93%, 100% 98.8%,
+    99% 100%, 92% 99.1%, 85% 100%, 77% 99.2%, 69% 100%, 61% 99%, 53% 100%,
+    45% 99.2%, 37% 100%, 29% 99.1%, 21% 100%, 13% 99.3%, 5% 100%, 0% 98.9%,
+    .9% 92%, 0% 84%, .8% 76%, 0% 68%, .7% 60%, 0% 52%, .9% 44%, 0% 36%,
+    .8% 28%, 0% 20%, .9% 12%, 0% 6%
+  );
 }
 
 *{box-sizing:border-box;}
@@ -869,11 +883,23 @@ section{
      at the edge (a bevel catching light, like a card under glass) and a
      soft dark ring just inside that (recesses the "mat" the image sits
      in) — this is what turns a bordered box into something that reads as
-     a physically framed object instead of a rectangle with a photo in it */
+     a physically framed object instead of a rectangle with a photo in it.
+     The drop shadow itself is now offset toward the bottom-right (was
+     dead-centre below) to match the foil gradient's own 152deg sweep —
+     light reads as coming from the top-left corner everywhere else on
+     this card, so a shadow falling straight down instead of away from
+     that light source was the one place the card didn't hang together as
+     one lit object. Two solid, unblurred offsets right after it — the
+     gradient's own darkest stops — are a visible cut-edge of cardstock
+     thickness in that same direction, not more ambient shadow (an ambient
+     shadow alone reads as "floating above something", not "this object
+     itself has depth"). */
   box-shadow:
-    0 30px 60px -20px var(--shadow), 0 0 46px -14px var(--glow),
+    14px 34px 58px -20px var(--shadow), 0 0 46px -14px var(--glow),
     inset 0 0 0 1px rgba(255,238,196,.22),
-    inset 0 0 26px 4px rgba(0,0,0,.4);
+    inset 0 0 26px 4px rgba(0,0,0,.4),
+    2px 3px 0 0 #3B2A08,
+    4px 6px 0 0 #241704;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center;
   /* small and uniform now — this used to be sized for the recreated
@@ -919,12 +945,35 @@ section{
    the envelope on the second beat, which reads as it being swallowed
    again rather than settling. */
 .invite-card.is-rising{ transform:translate(0,-1%) scale(1.02) rotate(0deg); }
-.invite-card.card-a.is-out{ transform:translate(-9%,0) scale(1) rotate(-3deg); z-index:3; }
-.invite-card.card-b.is-out{ transform:translate(9%,1%) scale(1) rotate(4deg); z-index:2; }
-/* whichever card was tapped last comes forward, dead centre */
-.invite-card.is-out.is-front{ transform:translate(0,-1%) scale(1.04) rotate(0deg); z-index:5; }
+/* the settled fan position picks up a small permanent 3D tilt (perspective()
+   + rotateX/rotateY, right in the same transform list as the existing 2D
+   translate/scale/rotate) — a card sitting perfectly flat-on read as a
+   picture of a card rather than a photographed object genuinely resting at
+   a slight angle. rotateY mirrors each card's own 2D fan rotate() direction
+   (card-a leans left, card-b leans right) so the two consistently read as
+   tilted AWAY from each other, not by coincidence in different directions.
+   Deliberately NOT touched: .is-rising, the tucked base states, and the
+   hover states below (hover fully replaces transform with its own 2D-only
+   value — losing the tilt specifically on hover is fine, even fitting: it
+   reads as squaring the card up toward the viewer to look at it closer). */
+.invite-card.card-a.is-out{ transform:translate(-9%,0) scale(1) rotate(-3deg) perspective(1400px) rotateX(4deg) rotateY(-4deg); z-index:3; }
+.invite-card.card-b.is-out{ transform:translate(9%,1%) scale(1) rotate(4deg) perspective(1400px) rotateX(4deg) rotateY(4deg); z-index:2; }
+/* whichever card was tapped last comes forward, dead centre — keeps a
+   little of the same tilt (not squared flat to 0) so it still reads as a
+   held object rather than snapping into a flat poster the moment it's
+   brought forward */
+.invite-card.is-out.is-front{ transform:translate(0,-1%) scale(1.04) rotate(0deg) perspective(1400px) rotateX(3deg) rotateY(0deg); z-index:5; }
 .invite-card.is-front{
-  box-shadow:0 34px 70px -18px var(--shadow), 0 0 60px -10px var(--glow);
+  /* same inset rim/mat + cardstock-thickness edge as the base rule (see
+     there for why) — this fully REPLACES box-shadow rather than adding to
+     it, so leaving those out here would make the front card look thinner/
+     flatter than the resting ones the instant it's tapped forward */
+  box-shadow:
+    16px 38px 68px -18px var(--shadow), 0 0 60px -10px var(--glow),
+    inset 0 0 0 1px rgba(255,238,196,.22),
+    inset 0 0 26px 4px rgba(0,0,0,.4),
+    2px 3px 0 0 #3B2A08,
+    4px 6px 0 0 #241704;
 }
 .invite-card:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; }
 
@@ -1056,8 +1105,23 @@ section{
      genuinely previews what tapping (which opens the full lightbox) is
      about to do, rotation eased toward 0 so it squares up as it grows
      instead of just getting bigger on a tilt */
-  .invite-card.card-a.is-out:hover{ transform:translate(-9%,-22px) scale(1.14) rotate(-1deg); box-shadow:0 46px 90px -20px var(--shadow), 0 0 64px -10px var(--glow); z-index:8; }
-  .invite-card.card-b.is-out:hover{ transform:translate(9%,-20px) scale(1.14) rotate(1deg); box-shadow:0 46px 90px -20px var(--shadow), 0 0 64px -10px var(--glow); z-index:8; }
+  .invite-card.card-a.is-out:hover{
+    transform:translate(-9%,-22px) scale(1.14) rotate(-1deg);
+    /* same inset rim/mat + cardstock-thickness edge as the base/is-front
+       rules — hover is exactly when a guest is looking most closely, so
+       this is the last place those cues should quietly disappear */
+    box-shadow:0 46px 90px -20px var(--shadow), 0 0 64px -10px var(--glow),
+      inset 0 0 0 1px rgba(255,238,196,.22), inset 0 0 26px 4px rgba(0,0,0,.4),
+      2px 3px 0 0 #3B2A08, 4px 6px 0 0 #241704;
+    z-index:8;
+  }
+  .invite-card.card-b.is-out:hover{
+    transform:translate(9%,-20px) scale(1.14) rotate(1deg);
+    box-shadow:0 46px 90px -20px var(--shadow), 0 0 64px -10px var(--glow),
+      inset 0 0 0 1px rgba(255,238,196,.22), inset 0 0 26px 4px rgba(0,0,0,.4),
+      2px 3px 0 0 #3B2A08, 4px 6px 0 0 #241704;
+    z-index:8;
+  }
   .invite-card.is-out.is-front:hover{ transform:translate(0,-22px) scale(1.18) rotate(0deg); z-index:8; }
   .invite-card:hover .card-zoom-cue{ opacity:1; transform:translate(-50%,-50%) scale(1); }
   /* a real magnifier cursor, not the plain pointer arrow — reads as "click
@@ -1300,16 +1364,7 @@ body.zoom-locked{ overflow:hidden; }
      the notches like a mat behind a deckle-edged print. Fixed, hand-tuned
      points (not randomised at runtime) so it stays identical every reveal
      instead of flickering between renders. */
-  clip-path:polygon(
-    0% 1.2%, 3% 0%, 9% 1%, 15% .2%, 22% 1.1%, 29% 0%, 37% .8%, 44% 0%,
-    52% 1%, 60% .1%, 68% 1.2%, 76% 0%, 84% .9%, 92% 0%, 100% 1%,
-    100% 2%, 99.1% 8%, 100% 15%, 99.2% 23%, 100% 31%, 99.3% 40%, 100% 49%,
-    99.1% 58%, 100% 67%, 99.4% 76%, 100% 85%, 99.2% 93%, 100% 98.8%,
-    99% 100%, 92% 99.1%, 85% 100%, 77% 99.2%, 69% 100%, 61% 99%, 53% 100%,
-    45% 99.2%, 37% 100%, 29% 99.1%, 21% 100%, 13% 99.3%, 5% 100%, 0% 98.9%,
-    .9% 92%, 0% 84%, .8% 76%, 0% 68%, .7% 60%, 0% 52%, .9% 44%, 0% 36%,
-    .8% 28%, 0% 20%, .9% 12%, 0% 6%
-  );
+  clip-path:var(--deckle-clip);
   /* tilt (desktop mousemove) and the blur-up load-in both animate this
      element's own transform/filter, on top of whatever .invite-card
      itself is doing — see js/script.js for both */
@@ -1324,6 +1379,25 @@ body.zoom-locked{ overflow:hidden; }
      drop-shadow 60 times a second. */
   will-change:transform;
   transform-origin:center center;
+}
+/* a faint paper-fiber texture laid directly over the printed artwork —
+   without this the "real card" was, underneath all the framing/bezel/
+   deckle-edge detail, still fundamentally a flat printed photo; this is
+   what actually breaks up that flatness on the card FACE itself, not
+   just its edges. Same feTurbulence-noise technique as the page's own
+   .grain, clipped to the identical --deckle-clip silhouette as .card-art
+   so it never spills past the artwork's own torn-edge shape. Sits above
+   .card-art in paint order for free (a positioned element always paints
+   over a static sibling, no z-index needed) and participates in the
+   normal ".invite-card > *" fade-in like every other direct child. */
+.card-texture{
+  position:absolute; inset:0;
+  clip-path:var(--deckle-clip);
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
+  background-size:150px 150px;
+  mix-blend-mode:overlay;
+  opacity:.1;
+  pointer-events:none;
 }
 /* Progressive/"blur-up" load: the real artwork starts softly blurred and
    slightly enlarged (so the blur never reveals a hard edge past the frame)

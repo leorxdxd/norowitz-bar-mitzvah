@@ -170,15 +170,31 @@
     // you move around it; this is that, in miniature, on the artwork itself
     // (not the whole .invite-card, whose own transform is busy with the
     // fan/hover/front choreography already).
+    // Raw mousemove can fire far faster than the screen can redraw (well
+    // over 60/sec on a fast mouse) — every prior version of this handler
+    // did a synchronous getBoundingClientRect() + style write on EVERY one
+    // of those events, so on a slower device this was doing many times more
+    // layout+paint work than a single frame budget actually allows for.
+    // rAF-throttling coalesces any burst of events between two paints down
+    // to exactly one update, which is the actual visual granularity a
+    // person can perceive anyway.
+    var tiltPending = null;
+    var tiltRAF = null;
     card.addEventListener('mousemove', function(e){
       if(!hoverFine.matches || !card.classList.contains('is-out')) return;
-      var r = card.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width - 0.5;
-      var py = (e.clientY - r.top) / r.height - 0.5;
-      art.style.transform = 'perspective(700px) rotateX(' + (py * -9).toFixed(2) + 'deg) rotateY(' + (px * 11).toFixed(2) + 'deg)';
+      tiltPending = e;
+      if(tiltRAF) return;
+      tiltRAF = requestAnimationFrame(function(){
+        tiltRAF = null;
+        var r = card.getBoundingClientRect();
+        var px = (tiltPending.clientX - r.left) / r.width - 0.5;
+        var py = (tiltPending.clientY - r.top) / r.height - 0.5;
+        art.style.transform = 'perspective(700px) rotateX(' + (py * -9).toFixed(2) + 'deg) rotateY(' + (px * 11).toFixed(2) + 'deg)';
+      });
     });
     card.addEventListener('mouseleave', function(){
       if(!hoverFine.matches) return;
+      if(tiltRAF){ cancelAnimationFrame(tiltRAF); tiltRAF = null; }
       art.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg)';
     });
   });
@@ -508,6 +524,7 @@
   var emailInput = document.getElementById('email');
   var emailField = emailInput.closest('.field');
   var emailMsg = document.getElementById('emailMsg');
+  var notesInput = document.getElementById('notes');
 
   function validateFam(){
     var ok = famInput.value.trim().length > 0;
@@ -516,11 +533,12 @@
     return ok;
   }
   function validateEmail(){
-    // optional field — only flagged once something is typed and it's malformed
+    // required now (client asked to make sure every RSVP has a real email
+    // on file) — empty fails the same as malformed, not a free pass
     var val = emailInput.value.trim();
-    var ok = val === '' || emailInput.checkValidity();
+    var ok = val !== '' && emailInput.checkValidity();
     emailField.classList.toggle('is-invalid', !ok);
-    emailMsg.textContent = ok ? '' : 'That doesn’t look like a valid email address.';
+    emailMsg.textContent = ok ? '' : (val === '' ? 'Please enter your email address.' : 'That doesn’t look like a valid email address.');
     return ok;
   }
   famInput.addEventListener('blur', validateFam);
@@ -565,7 +583,8 @@
       attending: attending,
       guest_count: attending ? clampCount(Number(countInput.value) || 1) : 0,
       guest_names: attending ? collectGuestNames() : '',
-      email: emailInput.value.trim()
+      email: emailInput.value.trim(),
+      notes: notesInput.value.trim()
     };
   }
   // Reverse of gatherPayload — used both to restore a guest's own earlier
@@ -578,6 +597,7 @@
     syncAttending();
     setCount(data.guest_count || 1);
     emailInput.value = data.email || '';
+    notesInput.value = data.notes || '';
     var names = (data.guest_names || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
     var inputs = guestNames.querySelectorAll('.guest-name-input');
     inputs.forEach(function(inp, i){ if(names[i]) inp.value = names[i]; });

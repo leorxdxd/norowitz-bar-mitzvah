@@ -599,6 +599,36 @@ section{
 }
 .envelope.is-open .env-front{ opacity:0; }
 
+/* the two static fold seams completing the envelope-back "kite" pattern
+   (see index.html for why only 2, not 4, lines are needed) — sits above
+   .env-front (z-index 4, later in DOM so it paints on top at that same
+   z-index) so the lines run unbroken across both the plain back panel AND
+   the front-pocket panel below it, but the two line segments never
+   actually overlap the flap's own occupied area (0-42% height) at all,
+   so being technically "above" it in z-index never matters visually.
+   Fades with the rest of the shell once the cards are clear, same timing
+   as .env-back/.env-front. */
+.env-seams{
+  /* width/height explicitly, NOT inset:0 alone — an <svg> with a viewBox
+     but no width/height attribute has its own intrinsic 1:1 aspect ratio
+     (from the square 100x100 viewBox), and a replaced element's default
+     sizing algorithm resolves inset:0 AROUND that intrinsic ratio rather
+     than simply stretching to fill — it rendered as a 620x620 square
+     pinned to the top instead of the envelope's actual 5:7 rectangle,
+     which is why the lines visibly stopped partway down instead of
+     reaching the bottom corners. Explicit 100%/100% overrides that. */
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  z-index:4;
+  pointer-events:none;
+  transition:opacity .7s ease 4.6s;
+}
+.env-seams line{
+  stroke:rgba(0,0,0,.32);
+  stroke-width:1;
+  vector-effect:non-scaling-stroke;
+}
+.envelope.is-open .env-seams{ opacity:0; }
+
 /* the flap folds down from the top edge; opening rotates it up & back */
 .env-flap{
   position:absolute; top:0; left:0; width:100%; height:42%;
@@ -1269,6 +1299,15 @@ body.zoom-locked{ overflow:hidden; }
      element's own transform/filter, on top of whatever .invite-card
      itself is doing — see js/script.js for both */
   transition:transform .12s ease-out, filter .7s ease;
+  /* this element already carries its own filter:drop-shadow (above) — an
+     element with an active filter can't take the cheap GPU-compositor-only
+     path a plain transform normally gets, so animating transform on it
+     (every tilt-follow frame while hovering) means re-rasterizing the
+     filtered result from scratch each time unless the browser is told
+     ahead of time to promote it to its own layer. This is what actually
+     lets the tilt effect run smoothly rather than repainting a blurred
+     drop-shadow 60 times a second. */
+  will-change:transform;
   transform-origin:center center;
 }
 /* Progressive/"blur-up" load: the real artwork starts softly blurred and
@@ -1448,15 +1487,25 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
   margin-bottom:.5rem;
 }
-.field input{
+/* lighter weight than the label proper, and no letter-spacing/uppercase —
+   reads as a quiet annotation on the label rather than part of the label
+   itself, the same distinction "(optional)" needs to make everywhere it
+   might appear on this form */
+.field-optional{
+  font-family:'Cormorant Garamond', serif; font-style:italic;
+  letter-spacing:0; text-transform:none; opacity:.75;
+}
+.field input, .field textarea{
   width:100%; border:none; border-bottom:1px solid var(--line);
   background:transparent; font-family:'Cormorant Garamond', serif;
   font-size:1.15rem; color:var(--ink); padding:.4rem 0;
 }
-.field input:focus, .field input:focus-visible{
+.field input:focus, .field input:focus-visible,
+.field textarea:focus, .field textarea:focus-visible{
   outline:none;
 }
-.field input::placeholder{ color:var(--ink-soft); opacity:.55; }
+.field textarea{ resize:vertical; min-height:3.4rem; }
+.field input::placeholder, .field textarea::placeholder{ color:var(--ink-soft); opacity:.55; }
 
 /* ---------- guest-count stepper ---------- */
 /* replaces the plain <input type=number>'s native up/down spinner, which

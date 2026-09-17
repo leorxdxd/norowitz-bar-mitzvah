@@ -104,6 +104,17 @@
                rather than being drawn out of it; the cards now slide up
                from behind this, which is what sells the whole reveal. -->
           <div class="env-front" aria-hidden="true"></div>
+          <!-- The top flap's own two edges already read as the top-left and
+               top-right fold seams (it's a physical triangle with real
+               edges/highlights) — these are the other two: the classic
+               envelope-back "kite" pattern is exactly 4 lines from each
+               corner to one shared centre point, and without these two the
+               shape only ever showed 2 of them, which is why it read as
+               "a square with a triangle on it" rather than an envelope. -->
+          <svg class="env-seams" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <line x1="0" y1="100" x2="50" y2="42"/>
+            <line x1="100" y1="100" x2="50" y2="42"/>
+          </svg>
           <div class="env-flap"></div>
           <!-- The seal sits OUTSIDE .env-flap on purpose: the flap is cut to
                a triangle with clip-path, and a clip-path clips descendants
@@ -158,11 +169,16 @@
               <div class="guest-names" id="guestNames"></div>
             </div>
             <div class="field" style="--d:4">
-              <label for="email">Email (optional, for confirmation)</label>
-              <input id="email" name="email" type="email" autocomplete="email">
+              <label for="email">Email Address</label>
+              <input id="email" name="email" type="email" required autocomplete="email">
               <span class="field-msg" id="emailMsg" aria-live="polite"></span>
             </div>
           </div>
+        </div>
+
+        <div class="field" style="--d:5">
+          <label for="notes">Notes <span class="field-optional">(optional)</span></label>
+          <textarea id="notes" name="notes" placeholder="A few words, well wishes, or any details you'd like us to know"></textarea>
         </div>
 
         <p class="form-error" id="formError" hidden></p>

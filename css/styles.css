@@ -1010,6 +1010,25 @@ section{
 .invite-card.is-rising .card-art{
   animation:card-art-reveal .85s cubic-bezier(.22,.68,0,1.03) .85s both;
 }
+/* Same landmine, same fix, for .card-texture: it's also a direct child of
+   .invite-card, so it's ALSO subject to the generic ".is-rising > *" rule
+   below (rise-in, ending at opacity:1 with fill:both) unless something
+   more specific wins for it too — and unlike .card-peel/.card-zoom-cue
+   (which really do want to end at full opacity), .card-texture's whole
+   point is to stay faint. Missing this the first time round meant the
+   texture was rendering at opacity:1 (the *animation's* held value, not
+   the .13 written on the element itself — a filling animation overrides
+   the plain cascaded value regardless of what the element's own rule
+   says) instead of the intended faint watermark — the card face was
+   visibly washed out with full-strength static-like noise the entire
+   time until this was caught. */
+@keyframes card-texture-reveal{
+  from{ opacity:0; }
+  to{ opacity:.13; }
+}
+.invite-card.is-rising .card-texture{
+  animation:card-texture-reveal .7s cubic-bezier(.22,.68,0,1.03) .85s both;
+}
 
 /* tapping a card to bring it to the front gets a springy overshoot instead
    of the reveal's own eased glide — a quick "shuffled to the top of the
@@ -1405,15 +1424,34 @@ body.zoom-locked{ overflow:hidden; }
    .grain, clipped to the identical --deckle-clip silhouette as .card-art
    so it never spills past the artwork's own torn-edge shape. Sits above
    .card-art in paint order for free (a positioned element always paints
-   over a static sibling, no z-index needed) and participates in the
-   normal ".invite-card > *" fade-in like every other direct child. */
+   over a static sibling, no z-index needed). Its fade-in is a dedicated
+   override (see .invite-card.is-rising .card-texture / card-texture-reveal
+   below), NOT the generic ".invite-card.is-rising > *" rise-in every other
+   direct child uses — that one ends at opacity:1, which is right for
+   .card-peel/.card-zoom-cue but was silently overriding this element's own
+   opacity to full strength too (a filling animation beats a plain
+   cascaded value on the element itself, regardless of specificity).
+   No opacity set here at all now — the reveal keyframe is the only thing
+   that ever sets it, before AND after reveal (0 while hidden, matching
+   its siblings; .13 once revealed), so there's nothing left here to
+   conflict with it. */
 .card-texture{
   position:absolute; inset:0;
   clip-path:var(--deckle-clip);
   background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
   background-size:150px 150px;
-  mix-blend-mode:overlay;
-  opacity:.1;
+  /* dropped mix-blend-mode:overlay for the same reason as .grain (see
+     there) — but MORE important here: unlike .grain (a static fixed
+     layer where only the scrolling backdrop changed), this element is a
+     child of .invite-card, which is under a permanently-running
+     `float` animation (5.5s infinite, never capped the way the shimmer/
+     sheen animations were) once the cards settle. A blend-mode layer
+     riding along on something that's continuously moving has to
+     recompute the blend every single frame of that motion, forever, not
+     just while scrolling — reported as lag specifically "sa may card
+     banda" (in the card area), which pointed straight at this. Plain
+     alpha compositing doesn't have that recomputation cost regardless of
+     how much the layer itself is moving. */
   pointer-events:none;
 }
 /* Progressive/"blur-up" load: the real artwork starts softly blurred and

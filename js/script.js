@@ -99,41 +99,60 @@
   var cardsHint = document.getElementById('cardsHint');
   var continueHint = document.getElementById('continueHint');
   var revealed = false, opened = false;
+  function openEnvelope(){
+    if(opened) return;
+    opened = true;
+    envelope.classList.add('is-open');
+    // Each invitation is drawn out in two beats: '.is-rising' pulls it
+    // straight up out of the pocket and holds it square to the viewer,
+    // then '.is-out' lets it drift into its fanned resting place. The
+    // Shabbos/weekend card completes BOTH beats before the weekday one
+    // starts moving, so the two read as one-then-the-other rather than
+    // overlapping. Timings track the .95s transform transition on
+    // .invite-card — change one and the other has to follow.
+    setTimeout(function(){ cardA.classList.add('is-rising'); },  550);
+    setTimeout(function(){ cardA.classList.add('is-out');    }, 1600);
+    setTimeout(function(){ cardB.classList.add('is-rising'); }, 2600);
+    setTimeout(function(){ cardB.classList.add('is-out');    }, 3600);
+    // The envelope shell only dissolves once both cards are clear of
+    // it — that hand-off is timed in CSS (the 4.6s delays on .env-back
+    // / .env-front / .envelope's own glide), not here.
+    setTimeout(function(){ cardsHint.classList.add('ready'); }, 5200);
+    // A quieter, later cue for a guest who isn't going to tap the
+    // cards at all — they should still learn there is more below.
+    setTimeout(function(){ continueHint.classList.add('ready'); }, 6600);
+  }
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){
       var ratio = entry.intersectionRatio;
       if(ratio > 0.25 && !revealed){
         revealed = true;
         envelopeWrap.classList.add('is-visible');
+        // This USED to also open the envelope once ratio crossed a second,
+        // higher threshold (0.6, later tried raising to 0.85) — measured
+        // the real intersection-ratio curve via a diagnostic observer and
+        // found that doesn't work: `.stage-inner` is `position:sticky`,
+        // so ratio jumps from ~0 to ~1 almost immediately once the sticky
+        // phase engages and then holds flat at ~1 for a long stretch —
+        // it's a near step-function, not a gradual ramp. That means ANY
+        // ratio threshold in that range fires at essentially the same
+        // early instant, so raising 0.6 to 0.85 changed nothing in
+        // practice — confirmed by measurement, not assumption, after the
+        // user reported the sealed envelope (with the fold-seam lines
+        // that make it read as an envelope rather than a plain square)
+        // still wasn't actually being seen. A fixed real-time delay after
+        // "revealed" is what actually guarantees on-screen time here,
+        // since the sticky pin holds the visual still on screen for far
+        // longer than this delay regardless of how fast the scroll
+        // gesture itself was.
+        setTimeout(openEnvelope, 1800);
+        io.disconnect();
       }
-      if(ratio > 0.6 && !opened){
-        opened = true;
-        envelope.classList.add('is-open');
-        // Each invitation is drawn out in two beats: '.is-rising' pulls it
-        // straight up out of the pocket and holds it square to the viewer,
-        // then '.is-out' lets it drift into its fanned resting place. The
-        // Shabbos/weekend card completes BOTH beats before the weekday one
-        // starts moving, so the two read as one-then-the-other rather than
-        // overlapping. Timings track the .95s transform transition on
-        // .invite-card — change one and the other has to follow.
-        setTimeout(function(){ cardA.classList.add('is-rising'); },  550);
-        setTimeout(function(){ cardA.classList.add('is-out');    }, 1600);
-        setTimeout(function(){ cardB.classList.add('is-rising'); }, 2600);
-        setTimeout(function(){ cardB.classList.add('is-out');    }, 3600);
-        // The envelope shell only dissolves once both cards are clear of
-        // it — that hand-off is timed in CSS (the 4.6s delays on .env-back
-        // / .env-front / .envelope's own glide), not here.
-        setTimeout(function(){ cardsHint.classList.add('ready'); }, 5200);
-        // A quieter, later cue for a guest who isn't going to tap the
-        // cards at all — they should still learn there is more below.
-        setTimeout(function(){ continueHint.classList.add('ready'); }, 6600);
-      }
-      if(revealed && opened) io.disconnect();
     });
     // The inset root keeps the envelope from opening while it is still
     // creeping in at the edge of the screen — it waits until it is
     // properly in view.
-  }, {threshold:[0,0.25,0.6,1], rootMargin:'-8% 0px -8% 0px'});
+  }, {threshold:[0,0.25,1], rootMargin:'-8% 0px -8% 0px'});
   io.observe(envelopeWrap);
 
   // ---------- two invitation cards: tap either to bring it forward, and

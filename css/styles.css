@@ -214,15 +214,23 @@ a, button{font-family:inherit;}
 .watermark.yn-mark::before{ width:clamp(9rem, 42vw, 26rem); }
 
 /* faint grain so the gold ground reads as a lit material, not a flat
-   fill — overlay (not screen, which only ever brightens) works both ways
-   against a midtone gold, giving the noise some actual texture instead of
-   just a uniform light dusting */
+   fill. Used to be mix-blend-mode:overlay (reacts to whatever brightness
+   sits underneath, richer texture) — but a full-viewport, always-on
+   blend-mode layer forces the browser to recompute that blend against
+   the backdrop on every frame the backdrop changes, and scrolling this
+   page changes what's under it CONSTANTLY (revealing new sections, every
+   scroll-linked animation running underneath). Switched to plain alpha
+   compositing (no blend mode) — a GPU handles "draw this texture over
+   whatever's there" essentially for free regardless of what's under it,
+   unlike a real blend which has to read and combine the actual backdrop
+   colour. Nudged opacity up slightly (.05->.065) since flat compositing
+   reads a touch less present than overlay did at the same value. */
 .grain{
   position:fixed; inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.05;
-  mix-blend-mode:overlay;
+  opacity:.065;
+  will-change:opacity;
   background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
   background-size:180px 180px;
 }
@@ -239,9 +247,18 @@ a, button{font-family:inherit;}
   background:rgba(64,42,4,.22);
 }
 .progress-fill{
-  height:100%; width:0%;
+  /* full width, scaled down via transform rather than animated via
+     `width` — width is a layout-triggering property (forces a reflow on
+     every single update), while transform:scaleX() is a pure compositor
+     operation with no layout/paint cost at all. This updates on every
+     throttled scroll frame (see script.js), so the difference is exactly
+     the kind of thing "smooth scrolling" actually depends on. */
+  height:100%; width:100%;
+  transform-origin:left center;
+  transform:scaleX(0);
   background:linear-gradient(90deg, var(--gold-deep), var(--ink-dark));
-  transition:width .1s linear;
+  transition:transform .1s linear;
+  will-change:transform;
 }
 
 /* ---------- persistent rsvp pill ---------- */

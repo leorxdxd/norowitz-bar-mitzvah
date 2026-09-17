@@ -58,7 +58,9 @@
   function updateScrollEffects(){
     var scrollable = document.documentElement.scrollHeight - window.innerHeight;
     var pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
-    progressFill.style.width = Math.min(Math.max(pct, 0), 100) + '%';
+    // scaleX (compositor-only), not width (forces layout) — see the CSS
+    // comment on .progress-fill for why this matters specifically here
+    progressFill.style.transform = 'scaleX(' + (Math.min(Math.max(pct, 0), 100) / 100) + ')';
 
     var h = hero.offsetHeight || window.innerHeight;
     var p = Math.min(Math.max(window.scrollY / (h*0.5), 0), 1);

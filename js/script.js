@@ -1,9 +1,17 @@
 (function(){
   // ---------- countdown ----------
-  // Counts down to the Weekday Celebration (Wed, Nov 18, 2026, 7:00 PM) —
-  // the first of the two real printed events, chronologically. Shabbos
-  // Kodesh Parshas Vayeitzei (Sat, Nov 21) follows a few days after.
-  var target = new Date('2026-11-18T19:00:00');
+  // Counts down to the NEXT of the two real printed events: the Weekday
+  // Celebration (Wed, Nov 18, 2026, 7:00 PM) first, then — once that has
+  // passed — Shabbos Kodesh Parshas Vayeitzei (Sat, Nov 21, 8:30 AM), which
+  // used to be impossible: the countdown had a single target and simply
+  // sat at 00:00:00:00 for the three days in between. Once BOTH are over,
+  // the numbers give way to a thank-you line instead of a dead clock.
+  var targets = [
+    {at: new Date('2026-11-18T19:00:00'), caption: ''},
+    {at: new Date('2026-11-21T08:30:00'), caption: 'Until Shabbos Kodesh'}
+  ];
+  var countdownEl = document.querySelector('.countdown');
+  var elCaption = document.getElementById('cdCaption');
   var elD=document.getElementById('cdDays'), elH=document.getElementById('cdHours'),
       elM=document.getElementById('cdMins'), elS=document.getElementById('cdSecs');
   var lastVals = {d:null, h:null, m:null, s:null};
@@ -22,9 +30,20 @@
     }
     lastVals[key] = value;
   }
+  var countdownTimer = null;
   function tick(){
-    var diff = target - new Date();
-    if(diff < 0) diff = 0;
+    var now = new Date();
+    var current = null;
+    for(var i = 0; i < targets.length; i++){
+      if(targets[i].at - now > 0){ current = targets[i]; break; }
+    }
+    if(!current){
+      countdownEl.classList.add('is-past');
+      if(countdownTimer) clearInterval(countdownTimer);
+      return;
+    }
+    if(elCaption.textContent !== current.caption) elCaption.textContent = current.caption;
+    var diff = current.at - now;
     var d = Math.floor(diff/86400000);
     var h = Math.floor(diff%86400000/3600000);
     var m = Math.floor(diff%3600000/60000);
@@ -32,8 +51,8 @@
     setUnit(elD, 'd', d); setUnit(elH, 'h', h);
     setUnit(elM, 'm', m); setUnit(elS, 's', s);
   }
+  countdownTimer = setInterval(tick, 1000);
   tick();
-  setInterval(tick, 1000);
 
   // ---------- scroll progress bar + hero fade on scroll ----------
   // A faint always-visible sense of how far through the experience a

@@ -90,6 +90,22 @@
 
 *{box-sizing:border-box;}
 html{ background:var(--ivory); }
+/* thin gold scrollbar instead of the OS-default light-grey one, which was
+   the one bright, un-themed thing left on an otherwise fully gold page.
+   The standard properties cover current Chrome/Edge/Firefox/Safari; the
+   ::-webkit-scrollbar block only applies where they're NOT supported
+   (older Safari) — in Chrome, having scrollbar-color set makes the
+   -webkit- pseudo-elements get ignored anyway, so the @supports split just
+   keeps that intent explicit instead of relying on that quirk. */
+@supports (scrollbar-color:auto){
+  html{ scrollbar-width:thin; scrollbar-color:var(--gold-deep) rgba(15,9,0,.55); }
+}
+@supports not (scrollbar-color:auto){
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-track{ background:rgba(15,9,0,.55); }
+  ::-webkit-scrollbar-thumb{ background:var(--gold-deep); border-radius:6px; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--gold); }
+}
 body{
   margin:0;
   background:var(--ivory);
@@ -285,6 +301,24 @@ a, button{font-family:inherit;}
   box-shadow:0 8px 18px -6px rgba(42,27,3,.55), inset 0 0 0 1px rgba(255,255,255,.16);
   transition:box-shadow .3s ease, transform .3s ease, filter .3s ease;
 }
+/* a soft ring that expands off the pill and fades, a few times right after
+   load, so the one persistent call-to-action isn't easy to miss. Built as
+   an expanding pseudo-element (transform + opacity only — compositor-cheap)
+   rather than animating box-shadow, which repaints every frame, and capped
+   at 3 plays instead of infinite: this project has already been through
+   several rounds of "laggy" caused by things that quietly kept animating
+   forever after anyone was looking at them. */
+.rsvp-pill::after{
+  content:''; position:absolute; inset:-1.5px;
+  border-radius:inherit; border:1.5px solid var(--gold-light);
+  opacity:0; pointer-events:none;
+  animation:pill-ping 1.8s ease-out 3s 3;
+}
+@keyframes pill-ping{
+  0%{ opacity:.85; transform:scale(1); }
+  100%{ opacity:0; transform:scale(1.3,1.65); }
+}
+@media (prefers-reduced-motion: reduce){ .rsvp-pill::after{ animation:none; } }
 .rsvp-pill:hover{ filter:brightness(1.1); box-shadow:0 10px 22px -10px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.2); transform:translateY(-1px); }
 .rsvp-pill:active{ transform:translateY(0) scale(.96); }
 .rsvp-pill:focus-visible{ outline:2px solid var(--frame-gold); outline-offset:3px; }
@@ -466,6 +500,26 @@ section{
   margin-top:.2rem;
 }
 .cd-sep{ color:var(--ink-soft); font-size:1.4rem; align-self:flex-start; margin-top:.3rem; }
+/* "Until Shabbos Kodesh" once the weekday event has passed — a full-width
+   row inside the same framed band, and :empty collapses it entirely the
+   rest of the time so the band's height doesn't change before then */
+.cd-caption{
+  flex:0 0 100%; text-align:center; margin:.55rem 0 0;
+  font-family:'Jost', sans-serif; font-size:.66rem;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft);
+}
+.cd-caption:empty{ display:none; }
+/* after BOTH events: the number chips, separators and caption give way to
+   a single line instead of a dead 00:00:00:00 */
+.cd-thanks{
+  display:none; flex:0 0 100%; text-align:center;
+  margin:0; padding-block:.5rem;
+  font-style:italic; font-size:clamp(1.25rem,4vw,1.6rem); color:var(--ink);
+}
+.countdown.is-past .cd-unit,
+.countdown.is-past .cd-sep,
+.countdown.is-past .cd-caption{ display:none; }
+.countdown.is-past .cd-thanks{ display:block; }
 
 /* a real <button> now, not just a decorative cue — reset the browser
    button chrome but keep every visual property it already had */
@@ -1831,6 +1885,19 @@ form{ display:flex; flex-direction:column; gap:1.3rem; text-align:left; }
   transition:opacity .6s ease .1s, transform .6s ease .1s;
 }
 .rsvp-confirm.shown{ opacity:1; transform:translateY(0); }
+/* Until it's actually shown, take this block OUT of the layout (not just
+   opacity:0). It used to sit invisibly in normal flow underneath the form
+   the whole time, so the RSVP card was always as tall as form + the entire
+   confirmation screen — once that grew (calendar/directions rows, edit
+   link) the card ended in a huge dead dark space below the Submit button.
+   visibility:hidden also stops keyboard Tab from landing on the invisible
+   Calendar/Directions/Edit links, which opacity:0 alone never did. On
+   .shown the position flips back to static in the same instant the fade
+   starts, so the existing opacity transition is unchanged. */
+.rsvp-confirm:not(.shown){
+  position:absolute; left:0; right:0;
+  visibility:hidden; pointer-events:none;
+}
 .confirm-check{ width:60px; height:60px; margin-bottom:.3rem; }
 .confirm-check svg{ width:100%; height:100%; overflow:visible; }
 .confirm-check circle{ stroke-dasharray:190; stroke-dashoffset:190; }
@@ -1874,6 +1941,14 @@ footer{
   font-family:'Jost', sans-serif; font-size:.65rem; letter-spacing:.15em;
   text-transform:uppercase; color:var(--ink-soft); opacity:.7;
 }
+footer p{ margin:0; }
+/* the real YN mark (same .yn-mark mask as the seal/monogram) over the
+   same line-diamond-line flourish used under the hero and RSVP badge —
+   so the page ends on the same motif it opened with instead of one bare
+   line of grey-ish text */
+.footer-mark{ width:30px; height:36px; margin:0 auto .3rem; }
+.footer-mark.yn-mark::before{ width:100%; }
+footer .flourish.small{ margin:.4rem auto .9rem; }
 
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }

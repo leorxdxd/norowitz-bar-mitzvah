@@ -6,7 +6,28 @@
   <meta name="color-scheme" content="dark">
   <title>Yehoshua Norowitz &middot; Bar Mitzvah</title>
   <meta name="description" content="Join us to celebrate the Bar Mitzvah of Yehoshua Norowitz, November 2026.">
-  <meta name="theme-color" content="#0B0806">
+  <!-- was still the old near-black (#0B0806) from before the page turned
+       gold — this tints the phone browser's address bar / status area, so
+       on mobile the top edge of the page was a black strip above the gold.
+       Sampled from the page's own gradient at its top edge. -->
+  <meta name="theme-color" content="#6B5210">
+  <!-- Link-preview card for WhatsApp / Messenger / SMS / iMessage / Facebook /
+       X — the way this invitation actually spreads is a pasted link, and
+       without these it showed as a bare URL. og:image must be an ABSOLUTE
+       URL (relative paths are ignored by the scrapers). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Yehoshua Norowitz &middot; Bar Mitzvah">
+  <meta property="og:title" content="You&rsquo;re invited &mdash; the Bar Mitzvah of Yehoshua Norowitz">
+  <meta property="og:description" content="November 18&ndash;21, 2026 &middot; Brooklyn, New York. Open your invitation and RSVP.">
+  <meta property="og:url" content="https://norowitzbarmitzvah.vercel.app/">
+  <meta property="og:image" content="https://norowitzbarmitzvah.vercel.app/assets/og-share.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Gold invitation card: Yehoshua Norowitz, Bar Mitzvah, November 18 to 21, 2026, Brooklyn, New York">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="You&rsquo;re invited &mdash; the Bar Mitzvah of Yehoshua Norowitz">
+  <meta name="twitter:description" content="November 18&ndash;21, 2026 &middot; Brooklyn, New York. Open your invitation and RSVP.">
+  <meta name="twitter:image" content="https://norowitzbarmitzvah.vercel.app/assets/og-share.jpg">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +65,14 @@
         <div class="cd-unit"><span class="cd-num" id="cdMins">00</span><span class="cd-label">Minutes</span></div>
         <span class="cd-sep">&middot;</span>
         <div class="cd-unit"><span class="cd-num" id="cdSecs">00</span><span class="cd-label">Seconds</span></div>
+        <!-- Both live INSIDE .countdown (not as new siblings in .hero-inner)
+             on purpose: .hero-inner's staggered entrance is keyed on
+             nth-child, and a new sibling would shift the scroll cue's index
+             out from under its delay rule. The caption is empty (and so
+             display:none) until the weekday event has passed; the thanks
+             line only shows once both events are over. -->
+        <p class="cd-caption" id="cdCaption"></p>
+        <p class="cd-thanks" id="cdThanks">Thank you for celebrating with us.</p>
       </div>
       <button type="button" class="scroll-cue" id="scrollCueBtn" aria-label="Continue to the invitation">
         <span class="scroll-cue-icon">
@@ -276,7 +305,11 @@
   </div>
 </div>
 
-<footer>Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 2026</footer>
+<footer>
+  <div class="footer-mark yn-mark" aria-hidden="true">YN</div>
+  <div class="flourish small" aria-hidden="true"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
+  <p>Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 2026</p>
+</footer>
 
 <script src="js/config.js"></script>
 <script src="js/script.js"></script>

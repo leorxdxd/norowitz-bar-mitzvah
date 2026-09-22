@@ -807,7 +807,13 @@ section{
   /* its own perspective, so the fold reads as 3D without .envelope having
      to be a preserve-3d context — see the note there */
   transform:perspective(900px) rotateX(0deg);
-  transition:transform .95s cubic-bezier(.34,.01,.2,1);
+  /* opacity fades on the same 2.15s hand-off as the rest of the shell.
+     It never needed one before: backface-visibility:hidden made the flap
+     disappear by itself the moment it passed 90deg. Now that it stays
+     visible through the swing (so the cover actually looks opened),
+     nothing was ever taking it away again — it sat behind the settled
+     cards as a ghost triangle long after the envelope had gone. */
+  transition:transform .95s cubic-bezier(.34,.01,.2,1), opacity .7s ease 2.15s;
   /* NOT backface-visibility:hidden. With it, the flap simply vanished the
      instant it passed 90deg — the cover never looked opened, it looked
      deleted, which is exactly what the client kept saying. Visible through
@@ -823,7 +829,7 @@ section{
 }
 /* stops short of flat (-150, not -162) so it still reads as a raised
    cover standing behind the envelope rather than lying flush against it */
-.envelope.is-open .env-flap{ transform:perspective(900px) rotateX(-150deg); }
+.envelope.is-open .env-flap{ transform:perspective(900px) rotateX(-150deg); opacity:0; }
 
 /* 42% is the flap's own height, i.e. the point of the triangle — the seal
    sits on that fold exactly as it did when it was nested inside the flap,

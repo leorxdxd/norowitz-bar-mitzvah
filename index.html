@@ -90,23 +90,46 @@
           <div class="env-shadow"></div>
           <div class="env-back"></div>
           <div class="cards-position" id="cardsPosition">
-            <!-- The real, client-approved artwork replaces the recreated text/
-                 frame/seal build below (per the original brief's "use the
-                 actual invitation artwork, don't recreate as website text").
-                 No card-frame-outer/inner or corner ornaments here anymore —
-                 the real design already prints its own gold double-line
-                 border right to the edge, so adding another frame around it
-                 would just double up. The alt text carries the full content
+            <!-- The real, client-approved artwork (per the original brief's
+                 "use the actual invitation artwork, don't recreate as
+                 website text"). No extra frame or corner ornaments: the
+                 real design already prints its own gold double-line border
+                 right to its edge. The alt text carries the full content
                  for screen readers, since none of it exists as real text
-                 in the DOM anymore. -->
+                 in the DOM.
+
+                 Each card is three layers, and the order matters (see
+                 "THE CARD AS A RIGID BODY" in css/styles.css):
+                   .invite-card  the transform host. Nothing visible of its
+                                 own — it only holds the card's position
+                                 and its attitude in space, so that every
+                                 part of the card moves as one object.
+                   .card-stock   the cut edge of the board, offset behind
+                                 the face so a sliver of real thickness
+                                 shows, and sliding round as the card tilts.
+                   .card-face    the printed face. Opaque, clips its own
+                                 contents, carries the cast shadow, and
+                                 holds the artwork, the paper grain and the
+                                 specular that follows the cursor.
+
+                 There is deliberately no ".invite-card > *{opacity:0}" rule
+                 behind this anymore. That rule, plus a matching filling
+                 rise-in, used to hide every direct child until reveal — and
+                 it silently overrode any child that wanted to settle at
+                 anything other than opacity:1, which is how the paper grain
+                 shipped at full strength and the zoom cue shipped stuck
+                 permanently visible. Each child owns its own opacity now. -->
             <div class="invite-card card-a" id="cardA" role="button" tabindex="0" aria-label="Shabbos and weekend celebration invitation — tap to view up close"
                  data-event-title="Bar Mitzvah of Yehoshua Norowitz — Shacharis &amp; Kiddush"
                  data-event-start="2026-11-21T08:30:00" data-event-end="2026-11-21T11:30:00"
                  data-address="Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York"
                  data-filename="norowitz-bar-mitzvah-shabbos-invitation.png">
-              <img class="card-art is-loading" src="assets/cards/shabbos-card.png" alt="With gratitude to Hashem, we are honoured to invite you to join us for the Bar Mitzvah of our dear son, Yehoshua Norowitz. Shabbos Kodesh, Parshas Vayeitzei, the 21st of November. Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York. Shacharis at 8:30 AM, Kiddush following davening. Akiva &amp; Tamar Norowitz.">
-              <span class="card-texture" aria-hidden="true"></span>
-              <span class="card-peel" aria-hidden="true"></span>
+              <span class="card-stock" aria-hidden="true"></span>
+              <span class="card-face">
+                <img class="card-art is-loading" src="assets/cards/shabbos-card.png" alt="With gratitude to Hashem, we are honoured to invite you to join us for the Bar Mitzvah of our dear son, Yehoshua Norowitz. Shabbos Kodesh, Parshas Vayeitzei, the 21st of November. Torah Vodaas, Main Building, 425 East 9th Street, Brooklyn, New York. Shacharis at 8:30 AM, Kiddush following davening. Akiva &amp; Tamar Norowitz.">
+                <span class="card-texture" aria-hidden="true"></span>
+                <span class="card-sheen" aria-hidden="true"></span>
+              </span>
               <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
             <div class="invite-card card-b" id="cardB" role="button" tabindex="0" aria-label="Weekday celebration invitation — tap to view up close"
@@ -114,9 +137,12 @@
                  data-event-start="2026-11-18T19:00:00" data-event-end="2026-11-18T21:00:00"
                  data-address="Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York"
                  data-filename="norowitz-bar-mitzvah-weekday-invitation.png">
-              <img class="card-art is-loading" src="assets/cards/weekday-card.png" alt="With so much love and pride, we invite you to join us in celebrating our dear son, Yehoshua Norowitz, on the occasion of his Bar Mitzvah. Wednesday, November 18, 2026, 7:00 PM. Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York. Akiva &amp; Tamar Norowitz. To RSVP, email rsvp@ynbarmitzvah2026.com.">
-              <span class="card-texture" aria-hidden="true"></span>
-              <span class="card-peel" aria-hidden="true"></span>
+              <span class="card-stock" aria-hidden="true"></span>
+              <span class="card-face">
+                <img class="card-art is-loading" src="assets/cards/weekday-card.png" alt="With so much love and pride, we invite you to join us in celebrating our dear son, Yehoshua Norowitz, on the occasion of his Bar Mitzvah. Wednesday, November 18, 2026, 7:00 PM. Chaim Berlin Elementary School, 1310 Avenue J, Brooklyn, New York. Akiva &amp; Tamar Norowitz. To RSVP, email rsvp@ynbarmitzvah2026.com.">
+                <span class="card-texture" aria-hidden="true"></span>
+                <span class="card-sheen" aria-hidden="true"></span>
+              </span>
               <span class="card-zoom-cue" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg></span>
             </div>
             <!-- App-onboarding-style coach mark: a speech-bubble callout with
@@ -175,7 +201,20 @@
           <span class="field-msg" id="famMsg" aria-live="polite"></span>
         </div>
 
+        <!-- Email sits OUTSIDE .conditional-fields on purpose. It used to live
+             inside it, alongside the guest count and names, and that whole
+             block collapses when a guest chooses "Regretfully Decline" — but
+             email is required for every RSVP (the client's request), so a
+             declining guest hit a validation error on a field they could no
+             longer see, and the form simply refused to send. Declines are
+             RSVPs too. -->
         <div class="field" style="--d:1">
+          <label for="email">Email Address</label>
+          <input id="email" name="email" type="email" required autocomplete="email">
+          <span class="field-msg" id="emailMsg" aria-live="polite"></span>
+        </div>
+
+        <div class="field" style="--d:2">
           <label>Will you be attending?</label>
           <div class="attend-toggle">
             <input type="radio" name="attending" id="attendYes" value="yes" checked>
@@ -187,7 +226,7 @@
 
         <div class="conditional-fields" id="conditionalFields">
           <div class="fields-inner">
-            <div class="field" style="--d:2">
+            <div class="field" style="--d:3">
               <label for="count">Number of Guests</label>
               <div class="stepper">
                 <button type="button" class="stepper-btn" id="countMinus" aria-label="Decrease guest count">&minus;</button>
@@ -195,14 +234,9 @@
                 <button type="button" class="stepper-btn" id="countPlus" aria-label="Increase guest count">+</button>
               </div>
             </div>
-            <div class="field" style="--d:3">
+            <div class="field" style="--d:4">
               <label>Guest Names</label>
               <div class="guest-names" id="guestNames"></div>
-            </div>
-            <div class="field" style="--d:4">
-              <label for="email">Email Address</label>
-              <input id="email" name="email" type="email" required autocomplete="email">
-              <span class="field-msg" id="emailMsg" aria-live="polite"></span>
             </div>
           </div>
         </div>
@@ -223,9 +257,14 @@
             <path d="M18 31l8 8 16-18" stroke="#F0DFA0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="rsvp-monogram yn-mark">YN</div>
-        <p class="confirm-title">Thank you.</p>
-        <p class="sub">We look forward to celebrating together.</p>
+        <!-- A second .rsvp-monogram used to sit here, directly under the
+             checkmark — with the one already heading the card that made three
+             round emblems stacked in a column. The card's own monogram stays;
+             this one is gone. The title/sub copy is personalised from the
+             submitted answers in js/script.js (a guest who declines should not
+             be told "we look forward to celebrating together"). -->
+        <p class="confirm-title" id="confirmTitle">Thank you.</p>
+        <p class="sub" id="confirmSub">We look forward to celebrating together.</p>
 
         <!-- Both real events, not just whichever card a guest happened to
              zoom into earlier — a guest may be RSVPing for either or both,
@@ -277,31 +316,42 @@
   <button class="card-zoom-close" id="cardZoomClose" type="button" aria-label="Close">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
-  <button class="card-zoom-nav prev" id="cardZoomPrev" type="button" aria-label="Previous invitation">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-  </button>
-  <button class="card-zoom-nav next" id="cardZoomNext" type="button" aria-label="Next invitation">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-  </button>
   <img class="card-zoom-img" id="cardZoomImg" src="" alt="">
   <div class="card-zoom-vignette" aria-hidden="true"></div>
-  <div class="card-zoom-dots" id="cardZoomDots" role="tablist" aria-label="Choose invitation">
-    <button class="zoom-dot" data-card="a" role="tab" aria-label="Invitation 1 of 2"></button>
-    <button class="zoom-dot" data-card="b" role="tab" aria-label="Invitation 2 of 2"></button>
-  </div>
-  <div class="card-zoom-actions" id="cardZoomActions">
-    <a class="card-action-btn" id="zoomCalendarLink" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
-      Add to Calendar
-    </a>
-    <a class="card-action-btn" id="zoomDirectionsLink" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
-      Get Directions
-    </a>
-    <a class="card-action-btn" id="zoomSaveLink" download>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
-      Save Image
-    </a>
+  <!-- One footer in normal flow, instead of three separately absolute-
+       positioned pieces with hand-tuned bottom offsets. Those offsets were
+       what let the page dots land on top of the action buttons on a phone
+       (the buttons wrap to two rows there, the dots didn't know) and let
+       both sit over the invitation itself on desktop. The overlay's own
+       bottom padding now reserves this footer's height, so the artwork is
+       never underneath any of it. -->
+  <div class="card-zoom-footer">
+    <div class="card-zoom-pager">
+      <button class="card-zoom-nav prev" id="cardZoomPrev" type="button" aria-label="Previous invitation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="card-zoom-dots" id="cardZoomDots" role="tablist" aria-label="Choose invitation">
+        <button class="zoom-dot" data-card="a" role="tab" aria-label="Invitation 1 of 2"></button>
+        <button class="zoom-dot" data-card="b" role="tab" aria-label="Invitation 2 of 2"></button>
+      </div>
+      <button class="card-zoom-nav next" id="cardZoomNext" type="button" aria-label="Next invitation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="card-zoom-actions" id="cardZoomActions">
+      <a class="card-action-btn" id="zoomCalendarLink" target="_blank" rel="noopener" aria-label="Add to calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        <span><span class="lbl-extra">Add to </span>Calendar</span>
+      </a>
+      <a class="card-action-btn" id="zoomDirectionsLink" target="_blank" rel="noopener" aria-label="Get directions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>
+        <span><span class="lbl-extra">Get </span>Directions</span>
+      </a>
+      <a class="card-action-btn" id="zoomSaveLink" download aria-label="Save image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+        <span>Save<span class="lbl-extra"> Image</span></span>
+      </a>
+    </div>
   </div>
 </div>
 

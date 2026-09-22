@@ -133,6 +133,13 @@
     setTimeout(function(){ cardA.classList.add('is-out');    }, 1600);
     setTimeout(function(){ cardB.classList.add('is-rising'); }, 2600);
     setTimeout(function(){ cardB.classList.add('is-out');    }, 3600);
+    // Once the fan has actually finished moving (3600ms + the .95s
+    // transform transition), both cards swap to a much shorter transition
+    // so hover and cursor-tilt feel attached to the mouse instead of
+    // gliding after it a second later. See .invite-card.is-settled.
+    setTimeout(function(){
+      cards.forEach(function(c){ c.classList.add('is-settled'); });
+    }, 4700);
     // The envelope shell only dissolves once both cards are clear of
     // it — that hand-off is timed in CSS (the 4.6s delays on .env-back
     // / .env-front / .envelope's own glide), not here.
@@ -201,55 +208,63 @@
     if(art.complete) clearLoading();
     else art.addEventListener('load', clearLoading);
 
-    // The initial reveal (.card-art-reveal, played once via .is-rising) uses
-    // fill:both so it holds its resting transform (and opacity) after
-    // finishing — which means it keeps overriding this element's inline
-    // style forever unless explicitly released. Clearing the animation the
-    // moment it ends hands control back to plain CSS/inline styling, which
-    // the tilt effect below depends on — but the instant it's cleared, the
-    // element would otherwise fall back to ".invite-card > *{opacity:0}"
-    // (nothing else pins opacity to 1 once the animation itself is gone),
-    // so both have to be set together, in the same tick, or the card
-    // visibly vanishes the moment its own reveal finishes.
+    // The reveal bend (card-art-reveal, played once via .is-rising) uses
+    // fill:both so it holds its final transform after finishing, which
+    // keeps overriding anything else that wants to set transform on this
+    // element. Clearing the animation the moment it ends hands control
+    // back to plain CSS. (Nothing sets .card-art's opacity anymore — it is
+    // opaque from the start, because the card is hidden by the pocket in
+    // front of it, not by being transparent.)
     art.addEventListener('animationend', function(e){
       if(e.animationName !== 'card-art-reveal') return;
       art.style.animation = 'none';
-      art.style.opacity = '1';
       art.style.transform = 'none';
     });
 
-    // ---------- 3D tilt-follow, desktop only ----------
-    // A physical card resting on a table catches the light differently as
-    // you move around it; this is that, in miniature, on the artwork itself
-    // (not the whole .invite-card, whose own transform is busy with the
-    // fan/hover/front choreography already).
+    // ---------- cursor-driven tilt, mouse devices only ----------
+    // This used to rotate .card-art — the artwork — while the card's mat,
+    // bezel, cut edge and cast shadow all stayed put. That is a photograph
+    // swivelling inside a fixed frame, and it is the single biggest reason
+    // this never read as a physical object: the parts of the "card"
+    // visibly disagreed about where they were in space.
+    // Now it writes two plain numbers onto the CARD, and CSS composes
+    // everything that should react to them — the card's own rotation, the
+    // slab of cut edge behind it (.card-stock) and the specular hotspot on
+    // its face (.card-sheen). One source of truth, so the layers cannot
+    // disagree, and every one of them resolves to a transform, so the
+    // whole thing stays on the compositor.
     // Raw mousemove can fire far faster than the screen can redraw (well
-    // over 60/sec on a fast mouse) — every prior version of this handler
-    // did a synchronous getBoundingClientRect() + style write on EVERY one
-    // of those events, so on a slower device this was doing many times more
-    // layout+paint work than a single frame budget actually allows for.
-    // rAF-throttling coalesces any burst of events between two paints down
-    // to exactly one update, which is the actual visual granularity a
-    // person can perceive anyway.
+    // over 60/sec on a fast mouse). rAF-throttling coalesces any burst of
+    // events between two paints down to exactly one update, which is the
+    // actual visual granularity a person can perceive anyway.
     var tiltPending = null;
     var tiltRAF = null;
+    function setTilt(x, y){
+      card.style.setProperty('--tx', x.toFixed(3));
+      card.style.setProperty('--ty', y.toFixed(3));
+    }
     card.addEventListener('mousemove', function(e){
-      if(!hoverFine.matches || !card.classList.contains('is-out')) return;
+      if(!hoverFine.matches || reduceMotionMQ.matches) return;
+      if(!card.classList.contains('is-out')) return;
       tiltPending = e;
       if(tiltRAF) return;
       tiltRAF = requestAnimationFrame(function(){
         tiltRAF = null;
         var r = card.getBoundingClientRect();
-        var px = (tiltPending.clientX - r.left) / r.width - 0.5;
-        var py = (tiltPending.clientY - r.top) / r.height - 0.5;
-        art.style.transform = 'perspective(700px) rotateX(' + (py * -9).toFixed(2) + 'deg) rotateY(' + (px * 11).toFixed(2) + 'deg)';
+        setTilt(
+          (tiltPending.clientX - r.left) / r.width - 0.5,
+          (tiltPending.clientY - r.top) / r.height - 0.5
+        );
       });
     });
+    // returning to rest is a transition, not a jump: dropping both values
+    // back to 0 lets .is-settled's own .17s ease carry the card, its edge
+    // and its highlight back to square together
     card.addEventListener('mouseleave', function(){
-      if(!hoverFine.matches) return;
       if(tiltRAF){ cancelAnimationFrame(tiltRAF); tiltRAF = null; }
-      art.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg)';
+      setTilt(0, 0);
     });
+    card.tiltTo = setTilt;
   });
 
   // ---------- small gold sparkle burst on tap ----------
@@ -271,29 +286,27 @@
     }
   }
 
-  // ---------- tap feedback: spring-bounce + riffle-flip + sparkle + haptic ----------
+  // ---------- tap feedback: spring-bounce + rock + sparkle + haptic ----------
   // Runs whenever a card is actually TAPPED (not when prev/next/dots quietly
   // switch the zoom lightbox's contents further down).
   function activateCard(card, originX, originY){
     bringToFront(card);
     card.classList.add('is-tapped');
     setTimeout(function(){ card.classList.remove('is-tapped'); }, 650);
-    // A one-off Web Animations API flip, deliberately NOT a CSS class-driven
-    // animation: .card-art already runs a real CSS animation for its
-    // initial reveal (fill:both), and a second one toggled by a class would
-    // either lose to it outright or force it to restart from its
-    // opacity:0 frame the moment the class comes back off. WAAPI runs
-    // alongside without touching animation-name at all, so it can't collide
-    // with that animation either way.
-    if(!reduceMotionMQ.matches){
-      var art = card.querySelector('.card-art');
-      if(art.animate){
-        art.animate([
-          {transform:'rotateY(0deg)'},
-          {transform:'rotateY(-16deg)', offset:.4},
-          {transform:'rotateY(0deg)'}
-        ], {duration:550, easing:'ease-out'});
-      }
+    // The card rocks briefly toward the side it was touched on and settles
+    // back. This replaces a riffle-flip that used to spin .card-art alone —
+    // which, now that the card moves as one rigid object, would have been
+    // the artwork peeling off the card it is printed on. Driving the same
+    // --tx the cursor uses means the rock also swings the cut edge and the
+    // highlight, so the whole card responds, and the settled .17s ease
+    // carries it back with no extra animation to collide with.
+    if(!reduceMotionMQ.matches && card.tiltTo){
+      var r = card.getBoundingClientRect();
+      var side = originX < r.left + r.width / 2 ? -1 : 1;
+      card.tiltTo(side * 0.3, -0.18);
+      setTimeout(function(){
+        if(!card.matches(':hover')) card.tiltTo(0, 0);
+      }, 300);
     }
     burstSparkles(originX, originY);
     if(navigator.vibrate) navigator.vibrate(15);
@@ -610,7 +623,50 @@
   var submitBtn = document.getElementById('submitBtn');
   var formError = document.getElementById('formError');
   var editRsvpLink = document.getElementById('editRsvpLink');
+  var confirmTitle = document.getElementById('confirmTitle');
+  var confirmSub = document.getElementById('confirmSub');
+  var confirmEvents = document.getElementById('confirmEvents');
   var RSVP_STORAGE_KEY = 'norowitz_bar_mitzvah_rsvp_2026';
+
+  // The notes box grows with what's typed instead of showing a browser
+  // resize grip. Measured from scrollHeight after collapsing to auto, so
+  // it also shrinks back when text is deleted.
+  function fitNotes(){
+    notesInput.style.height = 'auto';
+    notesInput.style.height = notesInput.scrollHeight + 'px';
+  }
+  notesInput.addEventListener('input', fitNotes);
+
+  // The thank-you screen speaks to the answer that was actually given. It
+  // used to say "We look forward to celebrating together." to everyone —
+  // including a guest who had just declined — and offered that guest
+  // Add-to-Calendar and Directions buttons for events they aren't coming to.
+  function personaliseConfirmation(data){
+    var name = (data.family_name || '').trim();
+    // "Thank you," on its own line, the family's name on the next — left to
+    // wrap by itself it broke as "Thank you, The / Friedman Family."
+    confirmTitle.textContent = name ? 'Thank you,' : 'Thank you.';
+    if(name){
+      confirmTitle.appendChild(document.createElement('br'));
+      confirmTitle.appendChild(document.createTextNode(name + '.'));
+    }
+    var lines;
+    if(data.attending === false){
+      lines = ["We're sorry you can't be with us,", 'and so grateful you let us know.'];
+      confirmEvents.hidden = true;
+    } else {
+      var n = Number(data.guest_count) || 1;
+      lines = [n > 1 ? "We've saved " + n + ' places for you.' : "We've saved your place.",
+               'We look forward to celebrating together.'];
+      confirmEvents.hidden = false;
+    }
+    // one sentence per line, set as text nodes (never innerHTML — the
+    // family name above is guest-typed and this keeps everything as text)
+    confirmSub.textContent = '';
+    confirmSub.appendChild(document.createTextNode(lines[0]));
+    confirmSub.appendChild(document.createElement('br'));
+    confirmSub.appendChild(document.createTextNode(lines[1]));
+  }
 
   // Add to Calendar / Get Directions for BOTH real events, not just
   // whichever card a guest happened to zoom into — a guest confirming
@@ -651,12 +707,15 @@
     setCount(data.guest_count || 1);
     emailInput.value = data.email || '';
     notesInput.value = data.notes || '';
+    fitNotes();
     var names = (data.guest_names || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
     var inputs = guestNames.querySelectorAll('.guest-name-input');
     inputs.forEach(function(inp, i){ if(names[i]) inp.value = names[i]; });
   }
 
   function showConfirmation(payload){
+    personaliseConfirmation(payload);
+    rsvpInner.classList.add('is-confirmed');
     form.classList.add('gone');
     setTimeout(function(){
       confirm.classList.add('shown');
@@ -723,6 +782,7 @@
 
   editRsvpLink.addEventListener('click', function(){
     confirm.classList.remove('shown');
+    rsvpInner.classList.remove('is-confirmed');
     form.classList.remove('gone');
     submitBtn.disabled = false;
     submitBtn.querySelector('span').textContent = 'Submit RSVP';
@@ -738,6 +798,8 @@
     try{ saved = JSON.parse(localStorage.getItem(RSVP_STORAGE_KEY)); }catch(e){ saved = null; }
     if(!saved) return;
     prefillForm(saved);
+    personaliseConfirmation(saved);
+    rsvpInner.classList.add('is-confirmed');
     form.classList.add('gone');
     confirm.classList.add('shown');
   })();

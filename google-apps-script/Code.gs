@@ -78,12 +78,12 @@ function sendConfirmationEmail(data) {
     + '<h1 style="text-align:center;font-weight:normal;font-size:22px;margin:0 0 16px;">Thank you, ' + escapeHtml(name) + '.</h1>'
     + '<p style="text-align:center;font-size:16px;line-height:1.6;margin:0 0 20px;">' + attendingLine + '</p>'
     + '<hr style="border:none;border-top:1px solid #EAD9AC;margin:24px 0;">'
-    + '<p style="text-align:center;font-size:14px;color:#5B4E39;margin:0;">Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 18&ndash;21, 2026</p>'
+    + '<p style="text-align:center;font-size:14px;color:#5B4E39;margin:0;">Yehoshua Norowitz &middot; Bar Mitzvah &middot; November 18, 2026 &middot; 7:00 PM</p>'
     + '</div>';
 
   var plainBody = 'Thank you, ' + name + '.\n\n'
     + attendingLine.replace(/<[^>]*>/g, '') + '\n\n'
-    + 'Yehoshua Norowitz - Bar Mitzvah - November 18-21, 2026';
+    + 'Yehoshua Norowitz - Bar Mitzvah - November 18, 2026 - 7:00 PM';
 
   MailApp.sendEmail({
     to: data.email,

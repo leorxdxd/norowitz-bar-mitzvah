@@ -1,14 +1,13 @@
 (function(){
   // ---------- countdown ----------
-  // Counts down to the NEXT of the two real printed events: the Weekday
-  // Celebration (Wed, Nov 18, 2026, 7:00 PM) first, then — once that has
-  // passed — Shabbos Kodesh Parshas Vayeitzei (Sat, Nov 21, 8:30 AM), which
-  // used to be impossible: the countdown had a single target and simply
-  // sat at 00:00:00:00 for the three days in between. Once BOTH are over,
-  // the numbers give way to a thank-you line instead of a dead clock.
+  // One target, by the client's instruction: Wednesday 18 November 2026,
+  // 7:00 PM — the Weekday Celebration, and the date the hero headlines.
+  // (It used to roll over to Shabbos Kodesh on the 21st once the 18th had
+  // passed. The Shabbos card and its calendar/directions links are
+  // untouched; only what the clock counts to changed.) Once the date is
+  // past, the numbers give way to a thank-you line instead of a dead clock.
   var targets = [
-    {at: new Date('2026-11-18T19:00:00'), caption: ''},
-    {at: new Date('2026-11-21T08:30:00'), caption: 'Until Shabbos Kodesh'}
+    {at: new Date('2026-11-18T19:00:00'), caption: ''}
   ];
   var countdownEl = document.querySelector('.countdown');
   var elCaption = document.getElementById('cdCaption');
@@ -122,31 +121,40 @@
     if(opened) return;
     opened = true;
     envelope.classList.add('is-open');
-    // Each invitation is drawn out in two beats: '.is-rising' pulls it
-    // straight up out of the pocket and holds it square to the viewer,
-    // then '.is-out' lets it drift into its fanned resting place. The
-    // Shabbos/weekend card completes BOTH beats before the weekday one
-    // starts moving, so the two read as one-then-the-other rather than
-    // overlapping. Timings track the .95s transform transition on
-    // .invite-card — change one and the other has to follow.
-    setTimeout(function(){ cardA.classList.add('is-rising'); },  550);
-    setTimeout(function(){ cardA.classList.add('is-out');    }, 1600);
-    setTimeout(function(){ cardB.classList.add('is-rising'); }, 2600);
-    setTimeout(function(){ cardB.classList.add('is-out');    }, 3600);
-    // Once the fan has actually finished moving (3600ms + the .95s
+    // Two acts, not four beats. First both invitations slide up out of
+    // the V, one after the other, and stop there half-out of the envelope
+    // (.is-rising). Then, together, they grow to full size and fan into
+    // their resting places (.is-out) while the envelope fades and sinks
+    // away underneath them — that hand-off is timed in CSS (the 2.15s
+    // delays on .env-back / .env-front / .env-flap / the envelope's own
+    // glide), so these two numbers and those have to move together.
+    // It used to be four separate moves with a dead hold between each,
+    // which is most of what the client saw as choppy: the motion kept
+    // stopping. Nothing can fan out while the envelope is still there
+    // anyway — the front panel now covers the whole body, so a card that
+    // moves sideways just disappears behind it.
+    // Big card (the tall portrait one) out first, then the landscape one —
+    // the client's order.
+    setTimeout(function(){ cardB.classList.add('is-rising'); },  400);
+    setTimeout(function(){ cardA.classList.add('is-rising'); }, 1250);
+    setTimeout(function(){
+      // .is-clearing drops the shell behind the cards for its fade-out —
+      // see the note on it in css/styles.css
+      envelope.classList.add('is-clearing');
+      cardA.classList.add('is-out');
+      cardB.classList.add('is-out');
+    }, 2150);
+    // Once the fan has actually finished moving (2150ms + the .82s
     // transform transition), both cards swap to a much shorter transition
     // so hover and cursor-tilt feel attached to the mouse instead of
     // gliding after it a second later. See .invite-card.is-settled.
     setTimeout(function(){
       cards.forEach(function(c){ c.classList.add('is-settled'); });
-    }, 4700);
-    // The envelope shell only dissolves once both cards are clear of
-    // it — that hand-off is timed in CSS (the 4.6s delays on .env-back
-    // / .env-front / .envelope's own glide), not here.
-    setTimeout(function(){ cardsHint.classList.add('ready'); }, 5200);
+    }, 3100);
+    setTimeout(function(){ cardsHint.classList.add('ready'); }, 3400);
     // A quieter, later cue for a guest who isn't going to tap the
     // cards at all — they should still learn there is more below.
-    setTimeout(function(){ continueHint.classList.add('ready'); }, 6600);
+    setTimeout(function(){ continueHint.classList.add('ready'); }, 4800);
   }
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){

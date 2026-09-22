@@ -18,15 +18,15 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Yehoshua Norowitz &middot; Bar Mitzvah">
   <meta property="og:title" content="You&rsquo;re invited &mdash; the Bar Mitzvah of Yehoshua Norowitz">
-  <meta property="og:description" content="November 18&ndash;21, 2026 &middot; Brooklyn, New York. Open your invitation and RSVP.">
+  <meta property="og:description" content="November 18, 2026 at 7:00 PM &middot; Brooklyn, New York. Open your invitation and RSVP.">
   <meta property="og:url" content="https://norowitzbarmitzvah.vercel.app/">
   <meta property="og:image" content="https://norowitzbarmitzvah.vercel.app/assets/og-share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Gold invitation card: Yehoshua Norowitz, Bar Mitzvah, November 18 to 21, 2026, Brooklyn, New York">
+  <meta property="og:image:alt" content="Gold invitation card: Yehoshua Norowitz, Bar Mitzvah, November 18, 2026, Brooklyn, New York">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="You&rsquo;re invited &mdash; the Bar Mitzvah of Yehoshua Norowitz">
-  <meta name="twitter:description" content="November 18&ndash;21, 2026 &middot; Brooklyn, New York. Open your invitation and RSVP.">
+  <meta name="twitter:description" content="November 18, 2026 at 7:00 PM &middot; Brooklyn, New York. Open your invitation and RSVP.">
   <meta name="twitter:image" content="https://norowitzbarmitzvah.vercel.app/assets/og-share.jpg">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="favicon.svg">
@@ -55,7 +55,7 @@
       <p class="eyebrow">You are invited to celebrate the Bar&nbsp;Mitzvah of</p>
       <h1>Yehoshua Norowitz</h1>
       <p class="occasion-label">Bar Mitzvah</p>
-      <p class="date-line">November 18 &ndash; 21, 2026</p>
+      <p class="date-line">November 18, 2026 &middot; 7:00 PM</p>
       <div class="flourish"><span class="fl-line l"></span><span class="fl-dot"></span><span class="fl-line r"></span></div>
       <div class="countdown" aria-live="off">
         <div class="cd-unit"><span class="cd-num" id="cdDays">00</span><span class="cd-label">Days</span></div>
@@ -168,9 +168,17 @@
                corner to one shared centre point, and without these two the
                shape only ever showed 2 of them, which is why it read as
                "a square with a triangle on it" rather than an envelope. -->
+          <!-- The four folds of an envelope's back, all meeting at the
+               centre: the bottom flap's two creases (dark), and the two
+               cut edges of the V the card comes out of (bright). They all
+               converge on 50,50, which is also where the flap's point and
+               the wax seal sit — that convergence is what makes the shape
+               read as an envelope at a glance. -->
           <svg class="env-seams" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <line x1="0" y1="100" x2="50" y2="42"/>
-            <line x1="100" y1="100" x2="50" y2="42"/>
+            <line x1="0" y1="100" x2="50" y2="50"/>
+            <line x1="100" y1="100" x2="50" y2="50"/>
+            <line class="lip" x1="0" y1="0" x2="50" y2="50"/>
+            <line class="lip" x1="100" y1="0" x2="50" y2="50"/>
           </svg>
           <div class="env-flap"></div>
           <!-- The seal sits OUTSIDE .env-flap on purpose: the flap is cut to

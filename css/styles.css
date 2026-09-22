@@ -71,7 +71,12 @@
      680px: mobile is untouched (there, vw/svh are already the smaller
      term and never got near 460 to begin with), only wide/tall viewports
      get to actually use the room they have. */
-  --env-w: clamp(260px, min(86vw, 62svh), 680px);
+  /* 52svh, not 62: the cards are 1.4333 x --env-w tall and sit centred in
+     the viewport now, so this cap is what decides whether the two hints
+     below them still fit on a short laptop screen. Measured against the
+     clearance matrix at 700px tall, the tightest case. */
+  --env-w: clamp(260px, min(86vw, 52svh), 680px);
+
   /* --deckle-clip lived here: a 52-point torn-paper polygon that clipped
      .card-art and .card-texture. At the sizes these cards actually render
      at, ~1%-deep notches did not read as a deckle edge — they read as
@@ -575,7 +580,7 @@ section{
   display:flex; align-items:center; justify-content:center;
   color:var(--gold);
   box-shadow:0 8px 18px -10px var(--shadow);
-  animation:cue-bounce 1.8s ease-in-out infinite;
+  animation:cue-bounce 1.8s ease-in-out 12;
   transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
 }
 .scroll-cue-icon svg{ width:22px; height:22px; }
@@ -598,6 +603,8 @@ section{
 .invite-stage{ min-height:175vh; padding-top:0; z-index:2; }
 .stage-inner{
   position:sticky; top:0;
+  /* the absolutely-positioned .continue-hint anchors to this */
+  position:sticky;
   min-height:100svh;
   width:100%;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -630,16 +637,24 @@ section{
 .envelope{
   position:relative;
   width:var(--env-w);
-  aspect-ratio: 5 / 7;
-  transform-style:preserve-3d;
-  /* held until both cards are out — gliding the envelope (and the pocket
-     with it) mid-reveal would drag a card that is still inside it */
-  transition:transform 1s cubic-bezier(.22,.61,.24,1) 4.6s;
+  /* LANDSCAPE, like a real invitation envelope (and like the reference the
+     client sent). It was 5/7 portrait, which was the root of everything
+     that went wrong with this reveal: a portrait envelope is very nearly
+     as tall as the invitations themselves, so a card sliding out of it had
+     nowhere to go — at best it cleared its own pocket by a few percent and
+     never actually looked "out". A wide, short envelope is both what an
+     invitation is really posted in and what leaves genuine room above it
+     for a tall card to stand clear. */
+  aspect-ratio: 29 / 20;
+  /* NOT transform-style:preserve-3d. It was, and that is what quietly
+     broke the illusion: inside a preserve-3d parent the browser depth-
+     sorts children in 3D instead of obeying z-index, and because each
+     card's own transform contains a perspective(), the cards sorted IN
+     FRONT of the front panel that is supposed to be hiding them. A card
+     waiting inside the sealed envelope was painting on top of it.
+     The flap gets its 3D from a perspective() in its own transform
+     instead (see .env-flap), which needs no 3D context from here. */
 }
-/* The stage centres the ENVELOPE box, but the cards end up floating well
-   above it. Once they're out and the shell has dissolved, glide the whole
-   assembly down by that difference so the CARDS land dead centre. */
-.envelope.is-open{ transform:translateY(calc(var(--env-w) * 0.2)); }
 
 .env-shadow{
   position:absolute; left:50%; bottom:-6%;
@@ -648,7 +663,7 @@ section{
   transform:translateX(-50%) scaleX(1);
   filter:blur(2px);
   opacity:.45;
-  transition:opacity .7s ease 4.6s, transform 1s ease 4.6s;
+  transition:opacity .7s ease 2.15s, transform 1s ease 2.15s;
   z-index:0;
   pointer-events:none;
 }
@@ -674,7 +689,7 @@ section{
   border-radius:4px;
   box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
   z-index:1;
-  transition:opacity .7s ease 4.6s;
+  transition:opacity .7s ease 2.15s;
   pointer-events:none;
 }
 .env-back::before{
@@ -696,22 +711,28 @@ section{
    read as emerging from somewhere. Brighter than .env-back because this is
    the near face of the envelope, catching more light. */
 .env-front{
-  position:absolute; left:0; right:0; top:70%; bottom:0;
+  /* THE shape change. This was a plain rectangle covering only the bottom
+     30% (top:70%), while the flap's point stopped at 42% — so the two
+     never met and a band of bare back panel sat between them with the wax
+     seal floating in the middle of it. Sealed, that read as a dark square
+     with a gold strip at the bottom, which is exactly what the client kept
+     calling "not really an envelope".
+     Now it covers the WHOLE body with a V cut out of the top, i.e. the
+     three static flaps of an envelope's back (bottom + left + right) as
+     one shape. The closed flap fills that V exactly, so sealed it reads as
+     the four-panel envelope back everyone recognises — and open, the card
+     rises up through the V, with the fold edges cutting across it. */
+  position:absolute; inset:0;
+  clip-path:polygon(0% 0%, 50% 50%, 100% 0%, 100% 100%, 0% 100%);
   background:linear-gradient(160deg,
     #D6AF48 0%,
     #97730F 30%,
     #4A3606 58%,
     #190E00 82%,
     #2E2004 100%);
-  border-top:1px solid var(--paper-edge);
-  border-radius:0 0 4px 4px;
-  /* thrown upward, onto the card, so the card looks tucked behind this
-     edge instead of merely overlapped by it, PLUS a crisp bright line
-     right on the fold — real paper catches a hard highlight exactly at a
-     crease, not a soft blur, which is what actually sells the fold */
-  box-shadow:0 -14px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,238,196,.5);
+  border-radius:4px;
   z-index:4;
-  transition:opacity .8s ease 4.6s;
+  transition:opacity .8s ease 2.15s;
   /* purely visual occlusion, and it sits ABOVE the cards in z-index — once
      it's faded out this was silently still catching clicks/hover meant
      for whatever card happens to sit underneath it on screen */
@@ -738,20 +759,41 @@ section{
      which is why the lines visibly stopped partway down instead of
      reaching the bottom corners. Explicit 100%/100% overrides that. */
   position:absolute; top:0; left:0; width:100%; height:100%;
-  z-index:4;
+  z-index:5;
   pointer-events:none;
-  transition:opacity .7s ease 4.6s;
+  transition:opacity .7s ease 2.15s;
 }
+/* the two folds of the bottom flap, drawn dark (creases fold away from
+   the light) */
 .env-seams line{
   stroke:rgba(0,0,0,.32);
   stroke-width:1;
   vector-effect:non-scaling-stroke;
 }
+/* the two edges of the V — these are cut edges catching the light, not
+   creases, so they get a bright hairline instead. Paper's edge highlight
+   is hard, never blurred. */
+.env-seams line.lip{
+  stroke:rgba(255,240,200,.5);
+  stroke-width:1.25;
+}
 .envelope.is-open .env-seams{ opacity:0; }
+
+/* The moment the cards come forward, the whole shell drops behind them.
+   Until then the front panel HAS to be above the cards — that occlusion
+   is the only reason a card reads as being inside something. But it stays
+   painted for another second while it fades, and during that second a
+   half-transparent envelope was lying across the faces of two cards that
+   are supposed to be out in front of it. z-index can't be transitioned,
+   so js/script.js flips this class at the same moment it adds .is-out. */
+.envelope.is-clearing .env-back,
+.envelope.is-clearing .env-front,
+.envelope.is-clearing .env-flap,
+.envelope.is-clearing .env-seams{ z-index:0; }
 
 /* the flap folds down from the top edge; opening rotates it up & back */
 .env-flap{
-  position:absolute; top:0; left:0; width:100%; height:42%;
+  position:absolute; top:0; left:0; width:100%; height:50%;
   /* the flap catches the light rather than falling away from it, so its
      sweep runs the opposite direction to the envelope body underneath —
      bright along the top edge, dark down at the point, which also makes
@@ -762,7 +804,9 @@ section{
     linear-gradient(200deg, #CFA83E 0%, #7C5D0D 38%, #1B1000 78%, #2E2004 130%);
   clip-path:polygon(0 0, 100% 0, 50% 100%);
   transform-origin:top center;
-  transform:rotateX(0deg);
+  /* its own perspective, so the fold reads as 3D without .envelope having
+     to be a preserve-3d context — see the note there */
+  transform:perspective(900px) rotateX(0deg);
   transition:transform .85s cubic-bezier(.5,.02,.16,1);
   backface-visibility:hidden;
   z-index:3;
@@ -773,14 +817,18 @@ section{
   filter:drop-shadow(0 1px 0 rgba(255,238,196,.4));
   pointer-events:none;
 }
-.envelope.is-open .env-flap{ transform:rotateX(-162deg); }
+.envelope.is-open .env-flap{ transform:perspective(900px) rotateX(-162deg); }
 
 /* 42% is the flap's own height, i.e. the point of the triangle — the seal
    sits on that fold exactly as it did when it was nested inside the flap,
    but as a sibling it escapes the flap's clip-path. z-index clears both
    the flap (3) and the front pocket (4). */
 .seal-wrap{
-  position:absolute; left:50%; top:42%; width:46px; height:46px;
+  position:absolute; left:50%; top:50%;
+  /* scales with the envelope instead of a fixed 46px — on the landscape
+     shape a fixed size read far too large on desktop and too heavy on a
+     phone */
+  width:clamp(30px, calc(var(--env-w) * .085), 58px); aspect-ratio:1;
   transform:translate(-50%,-52%);
   z-index:5;
   transition:opacity .5s ease .1s, transform .5s ease .1s;
@@ -881,7 +929,12 @@ section{
    that transform is composed. */
 .cards-position{
   position:absolute;
-  left:50%; bottom:5%;
+  /* Centred ON the envelope rather than hung off its bottom edge. The box
+     is much taller than the (now landscape) envelope, so anchoring it to
+     the bottom pushed the settled pair far above centre and needed the
+     envelope to glide down afterwards to compensate. Centred, the cards
+     land dead centre on their own and the envelope can simply fade. */
+  left:50%; top:50%;
   /* matches the real weekday card's own shape (576x960 = 0.6) almost
      exactly — that card fills this box edge to edge, and it's also the
      TALLER of the two real cards, so it sets the height the shorter
@@ -891,8 +944,7 @@ section{
      translateX(-50%) the whole 86%-wide box (and both cards inside it)
      sits shifted a half-width to the right of center instead of centred,
      clipping off the right edge of narrower viewports. */
-  transform:translateX(-50%);
-  transform-origin:center bottom;
+  transform:translate(-50%,-50%);
   z-index:2;
   /* A card waiting in the pocket is pushed down far enough that it hangs
      well below the envelope; .env-front hides the middle of it but nothing
@@ -909,8 +961,20 @@ section{
      width of a supposedly sealed envelope. -2% keeps it clear of the lip
      and still leaves room for a settled card's shadow in the couple of
      seconds before the clip is dropped entirely. */
-  clip-path:inset(-200% -200% -2% -200%);
-  transition:clip-path 0s linear 5s;
+  /* 26% hides everything below the envelope's own bottom edge: the box is
+     1.4333 x --env-w tall, the envelope 0.6897, both centred, so the gap
+     from the envelope's bottom to the box's bottom is a fixed 25.9% of the
+     box. A card tucked inside hangs well past the envelope and this is
+     what keeps that overhang from showing. */
+  /* Sides clipped to the envelope's own edges too, not just the bottom.
+     The tucked cards are hidden by the front panel, but their soft cast
+     shadow still spilled past the envelope's bottom-right corner as a
+     faint dark haze on a supposedly sealed envelope (found by diffing the
+     sealed render against the same render with the cards hidden: 2800
+     pixels, up to 7% darker). The box is 86% of the envelope's width, so
+     the envelope's edge is 8.1% of the box outside each side. */
+  clip-path:inset(-200% -8.1% 26% -8.1%);
+  transition:clip-path 0s linear 3s;
 }
 .envelope.is-open .cards-position{
   clip-path:inset(-200%);
@@ -924,11 +988,11 @@ section{
      settle: the cards drift as they come to rest and then genuinely stop.
      The keyframes start and end on the element's own resting transform,
      so nothing jumps when the animation lets go. */
-  animation:float 6s ease-in-out 5.4s 3;
+  animation:float 6s ease-in-out 3.2s 3;
 }
 @keyframes float{
-  0%,100%{ transform:translateX(-50%) translateY(0) rotate(.3deg); }
-  50%{ transform:translateX(-50%) translateY(-9px) rotate(-.3deg); }
+  0%,100%{ transform:translate(-50%,-50%) rotate(.3deg); }
+  50%{ transform:translate(-50%,calc(-50% - 9px)) rotate(-.3deg); }
 }
 /* A dark pool of shade behind the pair. The single biggest reason these
    cards read as pictures rather than objects was that they are gold on a
@@ -969,7 +1033,7 @@ section{
     rgba(3,2,0,.36) 62%,
     rgba(3,2,0,0) 100%);
   opacity:0;
-  transition:opacity 1s ease 5.1s;
+  transition:opacity 1s ease 3.1s;
   pointer-events:none;
 }
 .envelope.is-open .cards-position::before{ opacity:1; }
@@ -985,7 +1049,7 @@ section{
     rgba(0,0,0,.78) 0%, rgba(0,0,0,.36) 44%, rgba(0,0,0,0) 74%);
   filter:blur(7px);
   opacity:0;
-  transition:opacity .8s ease 5.1s;
+  transition:opacity .8s ease 3.1s;
   z-index:1;
   pointer-events:none;
 }
@@ -995,7 +1059,7 @@ section{
      exactly: the shadow shrinks and lightens right as the cards lift, and
      settles back as they sink — the contact-shadow behaviour of an object
      actually leaving and returning to a surface, not a static blob */
-  animation:shadow-pulse 6s ease-in-out 5.4s 3;
+  animation:shadow-pulse 6s ease-in-out 3.2s 3;
 }
 @keyframes shadow-pulse{
   0%,100%{ opacity:.8; transform:translateX(-50%) scale(1); }
@@ -1072,7 +1136,7 @@ section{
     perspective(1100px)
     rotateX(calc(var(--lean-x) + var(--ty) * -7deg))
     rotateY(calc(var(--lean-y) + var(--tx) * 9deg));
-  transition:transform .95s cubic-bezier(.2,.78,.26,1);
+  transition:transform .82s cubic-bezier(.2,.78,.26,1);
   will-change:transform;
   cursor:pointer;
 }
@@ -1084,20 +1148,60 @@ section{
    shorter card a much smaller distance in real pixels, nowhere near
    enough to clear .env-front's line. Retuned empirically against that
    measurement rather than derived by hand. */
-.invite-card.card-a{ aspect-ratio:1488/996; --place-y:145%; --place-scale:.98; }
-.invite-card.card-b{ aspect-ratio:576/960;  --place-y:78%;  --place-scale:.965; }
+/* Tucked inside, and deliberately pushed right past the clip line (the
+   envelope's own bottom edge) rather than just below the V's apex. Below
+   the apex the front panel already covers them — that is proven, not
+   assumed: painting the panel red and every card layer green shows no
+   green anywhere. But their soft cast shadow still registered faintly
+   around the envelope's bottom edge. Tucked fully past the clip there is
+   provably nothing of them inside the envelope at all while it is sealed.
+   These are at FULL size: the cards no longer have to be shrunk to fit,
+   because the envelope is landscape now and genuinely shorter than they
+   are, which is the whole point of the new shape. */
+.invite-card.card-a{ aspect-ratio:1488/996; --place-y:115%; }
+.invite-card.card-b{ aspect-ratio:576/960;  --place-y:78%; }
 
-/* Step 1 — the card is drawn straight up out of the pocket and held there
-   for a beat, leaning back as it comes (--lean-x) the way a card does
-   when a hand pulls it clear. Step 2 (.is-out below) then only fans it
-   sideways into its resting place. Splitting the move in two is what
-   reads as being pulled out of something; one continuous tween from
-   inside the pocket to the final angled position just looks like the card
-   slid diagonally. This lands at the SAME height the card rests at,
-   deliberately: an .is-rising that overshoots upward makes the card
-   visibly sink back into the envelope on the second beat, which reads as
-   it being swallowed again rather than settling. */
-.invite-card.is-rising{ --place-y:-1%; --place-scale:1.02; --lean-x:9deg; }
+/* Step 1 — the card slides up THROUGH THE V and stops there, still at
+   envelope scale, with its lower corners tucked behind the two fold
+   edges: the same silhouette as a real card half-drawn from an envelope.
+   It leans back a little as it comes (--lean-x), the way a card does when
+   a hand pulls it clear.
+   The two cards stop at different heights and lean opposite ways so the
+   second one is actually visible arriving behind the first — at equal
+   height the portrait card sat exactly behind the landscape one (they are
+   the same width) and its arrival was invisible.
+   z-index has to be set here, not only on .is-out: without it the two
+   cards fall back to DOM order while rising, which puts the SECOND card
+   in front of the first — backwards. */
+/* Drawn up out of the V and held there. The big portrait card comes out
+   first and stops highest (its top lands just inside the top of the
+   screen); the landscape one follows and stops lower and in front, so the
+   first card stays visible behind it — at equal heights they are the same
+   width and the second simply erased the first.
+   z-index has to be set here, not only on .is-out: without it the two
+   fall back to DOM order while rising, which puts the second card behind
+   where it should be in front. */
+.invite-card.card-b.is-rising{
+  /* How far it comes out adapts to the screen instead of being a fixed
+     fraction. The target is simply "top edge 24px below the top of the
+     viewport": 50% (half the card) - 50svh (half the screen) + the stage
+     offset + 24px. A fixed percentage had to be tuned for the tightest
+     viewport (1366x700) and then wasted 150px of free space on a phone.
+     max() keeps the card's bottom from clearing the apex entirely — past
+     that it stops looking like it is coming OUT of anything. */
+  --place-x:-3%;
+  --place-y:max(calc(50% + 24px - 50svh), -42%);
+  --place-rot:-2.5deg; --lean-x:6deg;
+  z-index:2;
+}
+.invite-card.card-a.is-rising{
+  /* same target, then held 0.16 x --env-w lower so the first card stays
+     visible above this one */
+  --place-x:3%;
+  --place-y:max(calc(50% + 24px - 50svh + var(--env-w) * .16), -32%);
+  --place-rot:2.5deg; --lean-x:6deg;
+  z-index:3;
+}
 
 /* The settled composition. Two things changed from the old fan. First,
    the landscape card no longer sits dead centre over the portrait one —
@@ -1686,7 +1790,12 @@ body.zoom-locked{ overflow:hidden; }
      this text straight on top of that corner at every screen size, so the
      clearance has to scale with the envelope the same way the overhang
      does — measured to leave ~16px of real daylight from 360px to 1870px. */
-  margin-top:calc(14px + var(--env-w) * .075);
+  /* Retuned for the landscape envelope: card B now FILLS this box (it is
+     the box's own 576/960 shape) instead of hanging below it on a 4deg
+     fan, so the overhang to clear is only rotation inflation, not a whole
+     corner. The old .075 gap left 50-70px of dead space and pushed this
+     straight into the scroll hint pinned at the bottom of the stage. */
+  margin-top:calc(8px + var(--env-w) * .03);
   width:max-content; max-width:86vw;
   opacity:0; transform:translateX(-50%) translateY(2px) scale(.92);
   transition:opacity .5s ease, transform .5s cubic-bezier(.22,.68,0,1.03);
@@ -1703,10 +1812,25 @@ body.zoom-locked{ overflow:hidden; }
   border-radius:999px;
   background:linear-gradient(165deg, #2A1B03, #150C00);
   border:1px solid rgba(255,238,196,.3);
-  box-shadow:0 10px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 3px rgba(224,180,80,.08);
+  box-shadow:0 10px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
   font-family:'Jost', sans-serif; font-size:.68rem; letter-spacing:.14em;
   text-transform:uppercase; color:var(--ink-soft); white-space:nowrap;
-  animation:hint-pulse 2.6s ease-in-out infinite;
+}
+/* The pulse used to animate box-shadow on the bubble itself, forever.
+   box-shadow has no compositor fast path, so that was a full repaint of
+   this element every frame for as long as the page stayed open — one of
+   the few things on the page still costing real work once everything had
+   settled. Same look, as a ring on a pseudo-element animating only
+   transform and opacity (both composited), and capped: after a few
+   pulses a guest has either noticed the cue or is not going to. */
+.hint-bubble::after{
+  content:'';
+  position:absolute; inset:0;
+  border-radius:inherit;
+  box-shadow:0 0 0 3px rgba(224,180,80,.18);
+  opacity:0;
+  pointer-events:none;
+  animation:hint-pulse 2.6s ease-out 5;
 }
 /* the pointer tail — a small square rotated 45°, half-hidden behind the
    bubble's own top edge so only its top-left corner shows as a triangle */
@@ -1720,20 +1844,28 @@ body.zoom-locked{ overflow:hidden; }
   transform:translateX(-50%) rotate(45deg);
 }
 @keyframes hint-pulse{
-  0%,100%{ box-shadow:0 10px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 3px rgba(224,180,80,.08); }
-  50%{ box-shadow:0 10px 22px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 7px rgba(224,180,80,0); }
+  0%{ opacity:.9; transform:scale(1); }
+  70%,100%{ opacity:0; transform:scale(1.07); }
 }
 .hint-bubble svg{ width:15px; height:15px; flex:none; color:var(--gold-light); }
-@media (prefers-reduced-motion: reduce){ .hint-bubble{ animation:none; } }
+@media (prefers-reduced-motion: reduce){ .hint-bubble::after{ animation:none; } }
 
 /* a second, quieter cue so a guest who isn't interested in tapping the
    cards still knows there is more below, not just a dead end */
 .continue-hint{
+  /* Pinned to the bottom of the (viewport-tall, sticky) stage rather than
+     sitting in the flex flow. In flow, this hint and its margin counted
+     toward the column's height, so centring pushed the ENVELOPE up by half
+     of it — and the margin it needed in order to clear the cards made that
+     offset bigger still, chasing its own tail. Out of flow, .stage-inner
+     centres the envelope and nothing else, which is what every position in
+     the reveal is measured from. */
+  position:absolute; left:50%; bottom:1.4vh; transform:translateX(-50%) translateY(6px);
   display:flex; align-items:center; gap:.5rem;
   font-family:'Jost', sans-serif; font-size:.66rem; letter-spacing:.16em;
   text-transform:uppercase; color:var(--ink-soft);
-  opacity:0; transform:translateY(6px);
-  transition:opacity .7s ease, transform .7s ease, margin-top .3s ease;
+  opacity:0;
+  transition:opacity .7s ease, transform .7s ease;
 }
 /* .cards-position is absolutely positioned INSIDE .envelope and is taller
    than .envelope's own box (needed so the real invitation copy fits — see
@@ -1747,15 +1879,9 @@ body.zoom-locked{ overflow:hidden; }
    The flat +24px on top of that clears .cards-hint, which hangs a fixed
    ~7px into this line once the open transition and the float settle —
    that part is constant, not proportional, so it needs a constant term. */
-.stage-inner:has(.envelope.is-open) .continue-hint{
-  /* the flat term grew from 24px: .cards-hint's plain icon+text row became
-     a padded coach-mark bubble (.hint-bubble padding + its pointer tail),
-     which measured out taller by almost exactly the amount this needed
-     to go up by — re-measured after the redesign rather than guessed. */
-  margin-top:calc(var(--env-w) * .2 + 46px);
-}
-.continue-hint.ready{ opacity:.8; transform:translateY(0); }
-.continue-hint svg{ width:14px; height:14px; animation:continue-nudge 2s ease-in-out infinite; }
+
+.continue-hint.ready{ opacity:.8; transform:translateX(-50%) translateY(0); }
+.continue-hint svg{ width:14px; height:14px; animation:continue-nudge 2s ease-in-out 10; }
 @keyframes continue-nudge{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(4px); } }
 
 /* ---------- rsvp ---------- */

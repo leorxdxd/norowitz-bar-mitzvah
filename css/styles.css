@@ -807,9 +807,13 @@ section{
   /* its own perspective, so the fold reads as 3D without .envelope having
      to be a preserve-3d context — see the note there */
   transform:perspective(900px) rotateX(0deg);
-  transition:transform .85s cubic-bezier(.5,.02,.16,1);
-  backface-visibility:hidden;
-  z-index:3;
+  transition:transform .95s cubic-bezier(.34,.01,.2,1);
+  /* NOT backface-visibility:hidden. With it, the flap simply vanished the
+     instant it passed 90deg — the cover never looked opened, it looked
+     deleted, which is exactly what the client kept saying. Visible through
+     the whole swing, you watch it lift and come to rest leaning back
+     behind the envelope. */
+  z-index:1;
   box-shadow:0 1px 0 rgba(255,255,255,.08) inset;
   /* drop-shadow (not box-shadow) follows the clip-path's actual triangular
      silhouette, so this reads as a hard highlight right along the folded
@@ -817,7 +821,9 @@ section{
   filter:drop-shadow(0 1px 0 rgba(255,238,196,.4));
   pointer-events:none;
 }
-.envelope.is-open .env-flap{ transform:perspective(900px) rotateX(-162deg); }
+/* stops short of flat (-150, not -162) so it still reads as a raised
+   cover standing behind the envelope rather than lying flush against it */
+.envelope.is-open .env-flap{ transform:perspective(900px) rotateX(-150deg); }
 
 /* 42% is the flap's own height, i.e. the point of the triangle — the seal
    sits on that fold exactly as it did when it was nested inside the flap,
@@ -974,10 +980,17 @@ section{
      pixels, up to 7% darker). The box is 86% of the envelope's width, so
      the envelope's edge is 8.1% of the box outside each side. */
   clip-path:inset(-200% -8.1% 26% -8.1%);
-  transition:clip-path 0s linear 3s;
+  /* The clip used to be dropped in one step at 3s, a full second AFTER the
+     cards had already started moving to their resting places — so for that
+     second the pair was still being sliced off along the envelope's bottom
+     edge while in plain view. It now eases open from the moment they come
+     forward, which uncovers the rest of each card as it travels instead of
+     snapping. Both states are four-value inset() so the shape interpolates. */
+  transition:clip-path .55s ease 2.15s;
+
 }
 .envelope.is-open .cards-position{
-  clip-path:inset(-200%);
+  clip-path:inset(-200% -200% -200% -200%);
   /* This float used to be `infinite`. Two things were wrong with that.
      Physically: objects lying on a surface do not bob forever — a pair of
      cards that never stops drifting reads as a floating hologram, which

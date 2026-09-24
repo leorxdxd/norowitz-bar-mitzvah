@@ -663,7 +663,7 @@ section{
   transform:translateX(-50%) scaleX(1);
   filter:blur(2px);
   opacity:.45;
-  transition:opacity .7s ease 2.15s, transform 1s ease 2.15s;
+  transition:opacity .7s ease 1.3s, transform 1s ease 1.3s;
   z-index:0;
   pointer-events:none;
 }
@@ -689,7 +689,7 @@ section{
   border-radius:4px;
   box-shadow:0 24px 50px -18px var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
   z-index:1;
-  transition:opacity .7s ease 2.15s;
+  transition:opacity .7s ease 1.3s;
   pointer-events:none;
 }
 .env-back::before{
@@ -732,7 +732,7 @@ section{
     #2E2004 100%);
   border-radius:4px;
   z-index:4;
-  transition:opacity .8s ease 2.15s;
+  transition:opacity .8s ease 1.3s;
   /* purely visual occlusion, and it sits ABOVE the cards in z-index — once
      it's faded out this was silently still catching clicks/hover meant
      for whatever card happens to sit underneath it on screen */
@@ -761,7 +761,7 @@ section{
   position:absolute; top:0; left:0; width:100%; height:100%;
   z-index:5;
   pointer-events:none;
-  transition:opacity .7s ease 2.15s;
+  transition:opacity .7s ease 1.3s;
 }
 /* the two folds of the bottom flap, drawn dark (creases fold away from
    the light) */
@@ -807,13 +807,13 @@ section{
   /* its own perspective, so the fold reads as 3D without .envelope having
      to be a preserve-3d context — see the note there */
   transform:perspective(900px) rotateX(0deg);
-  /* opacity fades on the same 2.15s hand-off as the rest of the shell.
+  /* opacity fades on the same 1.3s hand-off as the rest of the shell.
      It never needed one before: backface-visibility:hidden made the flap
      disappear by itself the moment it passed 90deg. Now that it stays
      visible through the swing (so the cover actually looks opened),
      nothing was ever taking it away again — it sat behind the settled
      cards as a ghost triangle long after the envelope had gone. */
-  transition:transform .95s cubic-bezier(.34,.01,.2,1), opacity .7s ease 2.15s;
+  transition:transform .95s cubic-bezier(.34,.01,.2,1), opacity .7s ease 1.3s;
   /* NOT backface-visibility:hidden. With it, the flap simply vanished the
      instant it passed 90deg — the cover never looked opened, it looked
      deleted, which is exactly what the client kept saying. Visible through
@@ -992,7 +992,7 @@ section{
      edge while in plain view. It now eases open from the moment they come
      forward, which uncovers the rest of each card as it travels instead of
      snapping. Both states are four-value inset() so the shape interpolates. */
-  transition:clip-path .55s ease 2.15s;
+  transition:clip-path .55s ease 1.3s;
 
 }
 .envelope.is-open .cards-position{
@@ -1007,7 +1007,7 @@ section{
      settle: the cards drift as they come to rest and then genuinely stop.
      The keyframes start and end on the element's own resting transform,
      so nothing jumps when the animation lets go. */
-  animation:float 6s ease-in-out 3.2s 3;
+  animation:float 6s ease-in-out 2.35s 3;
 }
 @keyframes float{
   0%,100%{ transform:translate(-50%,-50%) rotate(.3deg); }
@@ -1052,7 +1052,7 @@ section{
     rgba(3,2,0,.36) 62%,
     rgba(3,2,0,0) 100%);
   opacity:0;
-  transition:opacity 1s ease 3.1s;
+  transition:opacity 1s ease 2.25s;
   pointer-events:none;
 }
 .envelope.is-open .cards-position::before{ opacity:1; }
@@ -1068,7 +1068,7 @@ section{
     rgba(0,0,0,.78) 0%, rgba(0,0,0,.36) 44%, rgba(0,0,0,0) 74%);
   filter:blur(7px);
   opacity:0;
-  transition:opacity .8s ease 3.1s;
+  transition:opacity .8s ease 2.25s;
   z-index:1;
   pointer-events:none;
 }
@@ -1078,7 +1078,7 @@ section{
      exactly: the shadow shrinks and lightens right as the cards lift, and
      settles back as they sink — the contact-shadow behaviour of an object
      actually leaving and returning to a surface, not a static blob */
-  animation:shadow-pulse 6s ease-in-out 3.2s 3;
+  animation:shadow-pulse 6s ease-in-out 2.35s 3;
 }
 @keyframes shadow-pulse{
   0%,100%{ opacity:.8; transform:translateX(-50%) scale(1); }
@@ -1156,7 +1156,16 @@ section{
     rotateX(calc(var(--lean-x) + var(--ty) * -7deg))
     rotateY(calc(var(--lean-y) + var(--tx) * 9deg));
   transition:transform .82s cubic-bezier(.2,.78,.26,1);
-  will-change:transform;
+  /* NOT a permanent will-change: that pins the card on its own composited
+     layer forever, and a layer promoted before the browser knows the
+     card's final on-screen scale gets rastered once and then stretched to
+     fit later transforms (most visibly card-a's 1.22-1.3x on wide
+     screens) — which is what was reading as the printed artwork being
+     softly out of focus even at rest. will-change is applied below only
+     for the windows where the transform is actually about to move (the
+     reveal, a tap-forward, a hover-tilt); once idle it drops away and the
+     browser re-rasters the settled card at its real, crisp resolution. */
+  backface-visibility:hidden;
   cursor:pointer;
 }
 /* the real cards' own shapes — Shabbos card is landscape, Weekday is
@@ -1266,6 +1275,13 @@ section{
    Must stay after .is-settled: same specificity, so source order decides. */
 .invite-card.is-tapped{ transition:transform .55s cubic-bezier(.34,1.56,.64,1); }
 .invite-card:focus-visible{ outline:2px solid var(--gold); outline-offset:4px; }
+/* will-change, scoped to exactly the moments the transform is actually
+   about to move — see the note on .invite-card above for why this isn't
+   permanent. Reveal, tap-forward and hover-tilt are the only times this
+   card's transform changes after load. */
+.invite-card.is-rising,
+.invite-card.is-tapped,
+.invite-card:hover{ will-change:transform; }
 
 /* ---- layer 1: the cut edge of the board ---- */
 /* Not a shadow. A solid slab in the board's own darkest golds, sitting

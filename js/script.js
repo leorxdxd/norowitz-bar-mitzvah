@@ -122,39 +122,45 @@
     opened = true;
     envelope.classList.add('is-open');
     // Two acts, not four beats. First both invitations slide up out of
-    // the V, one after the other, and stop there half-out of the envelope
-    // (.is-rising). Then, together, they grow to full size and fan into
-    // their resting places (.is-out) while the envelope fades and sinks
-    // away underneath them — that hand-off is timed in CSS (the 2.15s
-    // delays on .env-back / .env-front / .env-flap / the envelope's own
-    // glide), so these two numbers and those have to move together.
-    // It used to be four separate moves with a dead hold between each,
-    // which is most of what the client saw as choppy: the motion kept
-    // stopping. Nothing can fan out while the envelope is still there
-    // anyway — the front panel now covers the whole body, so a card that
-    // moves sideways just disappears behind it.
+    // the V, one after the other (.is-rising). Then they fan out to their
+    // resting places (.is-out) while the envelope fades and sinks away
+    // underneath them — that hand-off is timed in CSS (the 1.3s delays on
+    // .env-back / .env-front / .env-flap / the envelope's own glide), so
+    // these numbers and those have to move together.
+    // The fan-out (.is-out) fires WHILE card A is still mid-rise, not
+    // after both cards have come to a complete stop: the previous timing
+    // let card B sit fully still for ~930ms waiting on card A, then
+    // yanked both cards off in a new direction from a standing start —
+    // which is exactly what read as the card "just appearing" in front of
+    // the envelope instead of visibly travelling there. Retargeting the
+    // transform before the rise transition finishes lets the browser
+    // blend straight into the new direction from whatever position/
+    // velocity the card is already at, so the whole exit reads as one
+    // continuous pull-out-and-place motion. Card B still gets a brief
+    // (~180ms) settled beat — it finishes rising first — but it's short
+    // enough to land as a beat, not a stall.
     // Big card (the tall portrait one) out first, then the landscape one —
     // the client's order.
-    setTimeout(function(){ cardB.classList.add('is-rising'); },  400);
-    setTimeout(function(){ cardA.classList.add('is-rising'); }, 1250);
+    setTimeout(function(){ cardB.classList.add('is-rising'); }, 300);
+    setTimeout(function(){ cardA.classList.add('is-rising'); }, 650);
     setTimeout(function(){
       // .is-clearing drops the shell behind the cards for its fade-out —
       // see the note on it in css/styles.css
       envelope.classList.add('is-clearing');
       cardA.classList.add('is-out');
       cardB.classList.add('is-out');
-    }, 2150);
-    // Once the fan has actually finished moving (2150ms + the .82s
+    }, 1300);
+    // Once the fan has actually finished moving (1300ms + the .82s
     // transform transition), both cards swap to a much shorter transition
     // so hover and cursor-tilt feel attached to the mouse instead of
     // gliding after it a second later. See .invite-card.is-settled.
     setTimeout(function(){
       cards.forEach(function(c){ c.classList.add('is-settled'); });
-    }, 3100);
-    setTimeout(function(){ cardsHint.classList.add('ready'); }, 3400);
+    }, 2250);
+    setTimeout(function(){ cardsHint.classList.add('ready'); }, 2550);
     // A quieter, later cue for a guest who isn't going to tap the
     // cards at all — they should still learn there is more below.
-    setTimeout(function(){ continueHint.classList.add('ready'); }, 4800);
+    setTimeout(function(){ continueHint.classList.add('ready'); }, 3950);
   }
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(entry){

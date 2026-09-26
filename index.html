@@ -52,7 +52,10 @@
 
   <section class="hero" id="hero">
     <div class="hero-inner" id="heroInner">
-      <p class="eyebrow">You are invited to celebrate the Bar&nbsp;Mitzvah of</p>
+      <!-- The greeting lives INSIDE the eyebrow rather than as a new sibling:
+           .hero-inner's staggered entrance is keyed on nth-child, so a new
+           child would shift every delay after it. -->
+      <p class="eyebrow"><span class="eyebrow-welcome">Welcome &mdash; we&rsquo;re so glad you&rsquo;re here</span>You are invited to celebrate the Bar&nbsp;Mitzvah of</p>
       <h1>Yehoshua Norowitz</h1>
       <p class="occasion-label">Bar Mitzvah</p>
       <p class="date-line">November 18, 2026 &middot; 7:00 PM</p>

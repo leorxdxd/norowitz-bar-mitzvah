@@ -385,6 +385,43 @@ section{
   color:var(--ink-soft);
   margin-bottom:1.4rem;
 }
+/* the first thing a guest reads is a greeting, in a warm handwritten-feeling
+   italic, not the formal spaced-caps line — same size family as the date
+   line below so it sits comfortably in the hierarchy */
+.eyebrow-welcome{
+  display:block;
+  margin-bottom:1rem;
+  font-family:'Cormorant Garamond', Georgia, serif;
+  font-style:italic;
+  font-size:clamp(1.15rem, 3.4vw, 1.4rem);
+  letter-spacing:.01em;
+  text-transform:none;
+  color:var(--gold-light);
+}
+/* A soft pool of candle-warm light behind the name, so the opening screen
+   feels lit from within instead of flat and formal. Kept low and amber
+   (not bright): the text on it is light champagne, so anything much
+   brighter here eats contrast. Measured on the rendered hero (pixel
+   samples beside each line of text): 4.7-6.5:1 across the greeting,
+   eyebrow, date, label, countdown caption and scroll cue — the tightest
+   is the small spaced-caps eyebrow, so don't raise the alpha without
+   re-measuring. Fades in once, no looping. */
+.hero::before{
+  content:'';
+  position:absolute; z-index:-1;
+  left:50%; top:46%;
+  /* 96vw, never wider: an absolutely-positioned box that overhangs the page
+     adds real horizontal scroll (clip-path/overflow can't be used on body
+     here — see the note on body), and on a phone that zooms the whole page
+     out. Same cap .cards-position::before uses. */
+  width:min(96vw, 980px); height:min(90svh, 760px);
+  transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side, rgba(255,190,105,.13) 0%, rgba(255,190,105,.06) 52%, rgba(255,190,105,0) 100%);
+  pointer-events:none;
+  animation:hero-glow-in 2.4s ease-out .2s both;
+}
+@keyframes hero-glow-in{ from{ opacity:0; } to{ opacity:1; } }
+@media (prefers-reduced-motion: reduce){ .hero::before{ animation:none; } }
 .hero h1{
   font-size:clamp(2.6rem, 8vw, 4.6rem);
   letter-spacing:.02em;
@@ -1046,11 +1083,14 @@ section{
      the table where the box stops, and the pool draws a visible hard
      rectangle across the page — the extent is controlled by the inset
      above instead, which is what the box edge should be doing anyway. */
+  /* warm umber rather than near-black, and a touch lighter at the core: it
+     still separates the cards from the gold page, but reads as a cosy dim
+     room with the lamps low instead of a cold black hole */
   background:radial-gradient(ellipse 50% 50% at 50% 50%,
-    rgba(3,2,0,.94) 0%,
-    rgba(3,2,0,.76) 36%,
-    rgba(3,2,0,.36) 62%,
-    rgba(3,2,0,0) 100%);
+    rgba(26,14,2,.88) 0%,
+    rgba(26,14,2,.68) 36%,
+    rgba(26,14,2,.32) 62%,
+    rgba(26,14,2,0) 100%);
   opacity:0;
   transition:opacity 1s ease 2.25s;
   pointer-events:none;
@@ -1279,7 +1319,7 @@ section{
    about to move — see the note on .invite-card above for why this isn't
    permanent. Reveal, tap-forward and hover-tilt are the only times this
    card's transform changes after load. */
-.invite-card.is-rising,
+.invite-card.is-rising:not(.is-settled),
 .invite-card.is-tapped,
 .invite-card:hover{ will-change:transform; }
 

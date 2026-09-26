@@ -7,7 +7,7 @@
   // untouched; only what the clock counts to changed.) Once the date is
   // past, the numbers give way to a thank-you line instead of a dead clock.
   var targets = [
-    {at: new Date('2026-11-18T19:00:00'), caption: ''}
+    {at: new Date('2026-11-18T19:00:00'), caption: 'Until we celebrate together'}
   ];
   var countdownEl = document.querySelector('.countdown');
   var elCaption = document.getElementById('cdCaption');
